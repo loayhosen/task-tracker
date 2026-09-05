@@ -107,12 +107,33 @@
             z-index: 0;
             transition: opacity 0.3s;
         }
-        .sticker-1 { top: -10px; left: -10px; transform: rotate(-15deg); }
-        .sticker-1::before { content: var(--sticker1); }
-        .sticker-2 { bottom: 20px; right: -10px; transform: rotate(20deg); font-size: 100px; }
-        .sticker-2::before { content: var(--sticker2); }
-        .sticker-3 { top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(10deg); font-size: 200px; opacity: 0.04; }
-        .sticker-3::before { content: var(--sticker3); }
+        .sticker-1 {
+            top: -10px;
+            left: -10px;
+            transform: rotate(-15deg);
+        }
+        .sticker-1::before {
+            content: var(--sticker1);
+        }
+        .sticker-2 {
+            bottom: 20px;
+            right: -10px;
+            transform: rotate(20deg);
+            font-size: 100px;
+        }
+        .sticker-2::before {
+            content: var(--sticker2);
+        }
+        .sticker-3 {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(10deg);
+            font-size: 200px;
+            opacity: 0.04;
+        }
+        .sticker-3::before {
+            content: var(--sticker3);
+        }
 
         /* ===== LOGIN / ACCOUNT ===== */
         #login-page {
@@ -231,9 +252,20 @@
             border: 1px solid var(--primary-border);
             text-align: center;
         }
-        .success-box .icon { font-size: 64px; margin-bottom: 12px; }
-        .success-box h2 { color: var(--header-color); margin-bottom: 12px; }
-        .success-box p { color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 8px; }
+        .success-box .icon {
+            font-size: 64px;
+            margin-bottom: 12px;
+        }
+        .success-box h2 {
+            color: var(--header-color);
+            margin-bottom: 12px;
+        }
+        .success-box p {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
         .success-box .credentials {
             background: var(--primary-soft);
             padding: 12px;
@@ -386,13 +418,24 @@
         }
 
         /* ===== REST OF STYLES ===== */
-        h1, h2, h3 {
+        h1,
+        h2,
+        h3 {
             font-weight: 700;
             letter-spacing: -0.3px;
         }
-        h1 { font-size: 28px; color: var(--header-color); }
-        h2 { font-size: 22px; color: var(--header-color); }
-        h3 { font-size: 17px; color: var(--text-muted); }
+        h1 {
+            font-size: 28px;
+            color: var(--header-color);
+        }
+        h2 {
+            font-size: 22px;
+            color: var(--header-color);
+        }
+        h3 {
+            font-size: 17px;
+            color: var(--text-muted);
+        }
 
         .btn {
             display: inline-flex;
@@ -421,18 +464,35 @@
             color: var(--btn-primary-text);
             box-shadow: 0 4px 14px var(--primary-shadow);
         }
-        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
         .btn-outline {
             background: transparent;
             border: 2px solid var(--btn-outline-border);
             color: var(--btn-outline-text);
         }
-        .btn-outline:hover { background: var(--primary-soft); }
-        .btn-sm { padding: 6px 14px; font-size: 12px; }
-        .btn-danger { background: #ff6b6b; color: #fff; }
-        .btn-danger:hover { background: #e55555; }
-        .btn-success { background: #2ecc71; color: #fff; }
-        .btn-success:hover { background: #27ae60; }
+        .btn-outline:hover {
+            background: var(--primary-soft);
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+        .btn-danger {
+            background: #ff6b6b;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #e55555;
+        }
+        .btn-success {
+            background: #2ecc71;
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: #27ae60;
+        }
 
         .app-header {
             display: flex;
@@ -444,15 +504,39 @@
             position: relative;
             z-index: 1;
         }
-        .app-header .logo { display: flex; align-items: center; gap: 10px; }
-        .app-header .logo span { font-size: 32px; }
-        .app-header .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .app-header .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .app-header .logo span {
+            font-size: 32px;
+        }
+        .app-header .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
 
-        .page { display: none; animation: fadeUp 0.35s ease; position: relative; z-index: 1; }
-        .page.active { display: block; }
+        .page {
+            display: none;
+            animation: fadeUp 0.35s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .page.active {
+            display: block;
+        }
         @keyframes fadeUp {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .project-grid {
@@ -510,7 +594,9 @@
             border-radius: 30px;
             letter-spacing: 0.3px;
         }
-        .project-card .card-status.archived { background: var(--text-light); }
+        .project-card .card-status.archived {
+            background: var(--text-light);
+        }
         .project-card .card-progress {
             margin-top: 12px;
             height: 4px;
@@ -535,7 +621,11 @@
             padding-bottom: 12px;
             border-bottom: 2px solid var(--primary-border);
         }
-        .detail-header .left { display: flex; align-items: center; gap: 14px; }
+        .detail-header .left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
         .detail-header .left .back {
             font-size: 24px;
             cursor: pointer;
@@ -549,7 +639,9 @@
             transition: 0.2s;
             color: var(--text-muted);
         }
-        .detail-header .left .back:hover { background: var(--primary-border); }
+        .detail-header .left .back:hover {
+            background: var(--primary-border);
+        }
         .detail-header .project-name {
             font-size: 24px;
             font-weight: 700;
@@ -561,7 +653,11 @@
             color: var(--text-muted);
             margin-right: 8px;
         }
-        .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .detail-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
 
         .table-wrap {
             overflow: auto;
@@ -620,8 +716,12 @@
             min-width: 100px;
             white-space: nowrap;
         }
-        .table-wrap tr:hover td { background: var(--primary-soft); }
-        .table-wrap tr:hover td:first-child { background: var(--primary-border); }
+        .table-wrap tr:hover td {
+            background: var(--primary-soft);
+        }
+        .table-wrap tr:hover td:first-child {
+            background: var(--primary-border);
+        }
 
         .cell {
             position: relative;
@@ -666,11 +766,13 @@
             background: #ff6b6b;
             border-radius: 50%;
             border: 2px solid #fff;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
             pointer-events: none;
             display: none;
         }
-        .cell.not-done .reason-dot { display: block; }
+        .cell.not-done .reason-dot {
+            display: block;
+        }
         .cell .cell-content {
             display: flex;
             align-items: center;
@@ -714,8 +816,14 @@
             padding: 50px 20px;
             color: var(--text-light);
         }
-        .empty-state .icon { font-size: 64px; margin-bottom: 12px; opacity: 0.5; }
-        .empty-state p { font-size: 16px; }
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        .empty-state p {
+            font-size: 16px;
+        }
 
         .modal-overlay {
             display: none;
@@ -731,7 +839,9 @@
             align-items: center;
             padding: 20px;
         }
-        .modal-overlay.show { display: flex; }
+        .modal-overlay.show {
+            display: flex;
+        }
         .modal {
             background: #fff;
             border-radius: 36px;
@@ -743,10 +853,20 @@
             position: relative;
         }
         @keyframes modalIn {
-            0% { opacity: 0; transform: scale(0.94) translateY(30px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
+            0% {
+                opacity: 0;
+                transform: scale(0.94) translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
-        .modal h3 { font-size: 20px; margin-bottom: 18px; color: var(--header-color); }
+        .modal h3 {
+            font-size: 20px;
+            margin-bottom: 18px;
+            color: var(--header-color);
+        }
         .modal label {
             display: block;
             font-weight: 500;
@@ -755,7 +875,9 @@
             margin-bottom: 4px;
             margin-top: 14px;
         }
-        .modal input, .modal textarea, .modal select {
+        .modal input,
+        .modal textarea,
+        .modal select {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid var(--primary-border);
@@ -766,18 +888,24 @@
             outline: none;
             color: var(--text-dark);
         }
-        .modal input:focus, .modal textarea:focus {
+        .modal input:focus,
+        .modal textarea:focus {
             border-color: var(--primary-light);
             box-shadow: 0 0 0 4px var(--primary-shadow);
         }
-        .modal textarea { resize: vertical; min-height: 60px; }
+        .modal textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
         .modal .modal-actions {
             display: flex;
             gap: 10px;
             margin-top: 24px;
             justify-content: flex-end;
         }
-        .modal .modal-actions .btn { flex: 1; }
+        .modal .modal-actions .btn {
+            flex: 1;
+        }
         .modal .modal-close {
             position: absolute;
             top: 16px;
@@ -810,7 +938,9 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
-        .cell-popup.show { display: block; }
+        .cell-popup.show {
+            display: block;
+        }
         .cell-popup .popup-title {
             font-weight: 600;
             font-size: 16px;
@@ -847,7 +977,9 @@
             border-color: var(--cell-not-border);
             background: var(--cell-not-bg);
         }
-        .cell-popup .popup-reason { margin-top: 6px; }
+        .cell-popup .popup-reason {
+            margin-top: 6px;
+        }
         .cell-popup .popup-reason input {
             width: 100%;
             padding: 10px 14px;
@@ -858,7 +990,9 @@
             outline: none;
             color: var(--text-dark);
         }
-        .cell-popup .popup-reason input:focus { border-color: var(--primary-light); }
+        .cell-popup .popup-reason input:focus {
+            border-color: var(--primary-light);
+        }
         .cell-popup .popup-close {
             margin-top: 16px;
             text-align: center;
@@ -885,7 +1019,9 @@
             font-weight: 600;
             background: var(--primary-soft);
         }
-        .cell-popup .popup-close button.save-btn:hover { background: var(--primary-border); }
+        .cell-popup .popup-close button.save-btn:hover {
+            background: var(--primary-border);
+        }
         .cell-popup .popup-close button.clear-btn {
             color: #ff6b6b;
         }
@@ -909,39 +1045,128 @@
             flex-direction: column;
             gap: 8px;
         }
-        .archive-card .title { font-weight: 700; color: var(--text-muted); font-size: 18px; }
-        .archive-card .meta { font-size: 13px; color: var(--text-muted); }
-        .archive-card .actions { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+        .archive-card .title {
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+        .archive-card .meta {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .archive-card .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
 
         @media (max-width: 768px) {
-            #app { padding: 16px 12px 28px; border-radius: 28px; }
-            .app-header .logo h1 { font-size: 22px; }
-            .detail-header .project-name { font-size: 20px; }
-            .modal { padding: 24px 18px 28px; margin: 10px; }
-            .cell { width: 38px; height: 38px; font-size: 18px; }
-            .cell .reason-dot { width: 10px; height: 10px; top: -3px; right: -3px; }
-            .table-wrap td:first-child { min-width: 80px; font-size: 13px; padding-right: 10px; }
-            .table-wrap th:first-child { min-width: 80px; font-size: 12px; padding-right: 10px; }
-            .project-grid { grid-template-columns: 1fr; }
-            .archive-grid { grid-template-columns: 1fr; }
-            .sticker { display: none; }
-            .detail-actions .btn { font-size: 12px; padding: 6px 14px; }
-            .btn { font-size: 13px; padding: 8px 16px; }
-            .cell-popup { min-width: 240px; padding: 20px; }
-            .login-box, .success-box, .user-modal { padding: 30px 20px; margin: 16px; }
+            #app {
+                padding: 16px 12px 28px;
+                border-radius: 28px;
+            }
+            .app-header .logo h1 {
+                font-size: 22px;
+            }
+            .detail-header .project-name {
+                font-size: 20px;
+            }
+            .modal {
+                padding: 24px 18px 28px;
+                margin: 10px;
+            }
+            .cell {
+                width: 38px;
+                height: 38px;
+                font-size: 18px;
+            }
+            .cell .reason-dot {
+                width: 10px;
+                height: 10px;
+                top: -3px;
+                right: -3px;
+            }
+            .table-wrap td:first-child {
+                min-width: 80px;
+                font-size: 13px;
+                padding-right: 10px;
+            }
+            .table-wrap th:first-child {
+                min-width: 80px;
+                font-size: 12px;
+                padding-right: 10px;
+            }
+            .project-grid {
+                grid-template-columns: 1fr;
+            }
+            .archive-grid {
+                grid-template-columns: 1fr;
+            }
+            .sticker {
+                display: none;
+            }
+            .detail-actions .btn {
+                font-size: 12px;
+                padding: 6px 14px;
+            }
+            .btn {
+                font-size: 13px;
+                padding: 8px 16px;
+            }
+            .cell-popup {
+                min-width: 240px;
+                padding: 20px;
+            }
+            .login-box,
+            .success-box,
+            .user-modal {
+                padding: 30px 20px;
+                margin: 16px;
+            }
         }
         @media (max-width: 480px) {
-            .app-header { flex-direction: column; align-items: stretch; }
-            .app-header .actions { justify-content: stretch; }
-            .app-header .actions .btn { flex: 1; justify-content: center; }
-            .detail-header { flex-direction: column; align-items: stretch; }
-            .detail-header .left { flex-wrap: wrap; }
-            .detail-actions { justify-content: stretch; }
-            .detail-actions .btn { flex: 1; justify-content: center; }
-            .modal .modal-actions { flex-direction: column; }
-            .modal .modal-actions .btn { flex: none; }
-            .cell-popup { min-width: 200px; padding: 16px; max-width: 90vw; }
-            .cell-popup .popup-options button { font-size: 28px; padding: 8px; max-width: 60px; }
+            .app-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .app-header .actions {
+                justify-content: stretch;
+            }
+            .app-header .actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+            .detail-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .detail-header .left {
+                flex-wrap: wrap;
+            }
+            .detail-actions {
+                justify-content: stretch;
+            }
+            .detail-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+            .modal .modal-actions {
+                flex-direction: column;
+            }
+            .modal .modal-actions .btn {
+                flex: none;
+            }
+            .cell-popup {
+                min-width: 200px;
+                padding: 16px;
+                max-width: 90vw;
+            }
+            .cell-popup .popup-options button {
+                font-size: 28px;
+                padding: 8px;
+                max-width: 60px;
+            }
         }
 
         .table-wrap::-webkit-scrollbar {
@@ -1013,9 +1238,21 @@
             border: 1px solid #ddd;
             text-align: center;
         }
-        #pdf-export-area td:first-child { text-align: right; font-weight: 500; }
-        #pdf-export-area .pdf-title { font-size: 18px; font-weight: 700; color: var(--header-color); margin-bottom: 4px; }
-        #pdf-export-area .pdf-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+        #pdf-export-area td:first-child {
+            text-align: right;
+            font-weight: 500;
+        }
+        #pdf-export-area .pdf-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--header-color);
+            margin-bottom: 4px;
+        }
+        #pdf-export-area .pdf-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
         #pdf-export-area .pdf-footer {
             margin-top: 12px;
             font-size: 10px;
@@ -1024,10 +1261,22 @@
             border-top: 1px solid #eee;
             padding-top: 8px;
         }
-        #pdf-export-area .done-icon { color: #27ae60; font-weight: bold; }
-        #pdf-export-area .not-icon { color: #e55555; font-weight: bold; }
-        #pdf-export-area .reason-text { font-size: 9px; color: #888; display: block; }
-        #pdf-export-area .empty-cell { color: #ddd; }
+        #pdf-export-area .done-icon {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        #pdf-export-area .not-icon {
+            color: #e55555;
+            font-weight: bold;
+        }
+        #pdf-export-area .reason-text {
+            font-size: 9px;
+            color: #888;
+            display: block;
+        }
+        #pdf-export-area .empty-cell {
+            color: #ddd;
+        }
 
         .pdf-export-active #pdf-export-area {
             left: 0;
@@ -1039,7 +1288,7 @@
             width: 210mm;
             height: auto;
             background: #fff;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -1199,21 +1448,119 @@
 
     <script>
         // ============================================================
-        //  CONFIGURATION - تغيير هذه القيم حسب البيئة
+        //  CONFIGURATION
         // ============================================================
-        const USE_SERVER = true;  // true للإنتاج، false للتجربة المحلية
-        // في الإنتاج، استخدم المسار النسبي '/api' لتوجيه الطلبات إلى نفس الخادم
+        const USE_SERVER = true;
         const SERVER_URL = '/api';
 
         // ============================================================
-        //  AUTHENTICATION SYSTEM (localStorage for demo)
+        //  AUTHENTICATION SYSTEM
         // ============================================================
         const USERS_KEY = 'taskTrackerUsers';
         const SESSION_KEY = 'taskTrackerSession';
 
         let currentUser = null;
         let isLoginMode = true;
+        let data = { projects: [] };
 
+        // ============================================================
+        //  SERVER COMMUNICATION
+        // ============================================================
+        async function apiRequest(endpoint, method = 'GET', body = null) {
+            const url = `${SERVER_URL}${endpoint}`;
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+            if (body) options.body = JSON.stringify(body);
+
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || `HTTP error ${response.status}`);
+                }
+                return data;
+            } catch (err) {
+                console.error('API Error:', err);
+                throw err;
+            }
+        }
+
+        // ============================================================
+        //  DATA LAYER (مع تحسينات الحفظ والتحميل)
+        // ============================================================
+
+        // تحميل البيانات من الخادم
+        async function loadUserData() {
+            if (!currentUser) return;
+            try {
+                const result = await apiRequest(`/projects/${currentUser}`, 'GET');
+                if (result && Array.isArray(result.projects)) {
+                    data.projects = result.projects;
+                    console.log('✅ تم تحميل البيانات من الخادم:', data.projects.length, 'مشروع');
+                } else {
+                    data.projects = [];
+                    console.warn('⚠️ بيانات غير متوقعة من الخادم، تم تهيئة مصفوفة فارغة');
+                }
+                saveLocalBackup();
+            } catch (err) {
+                console.warn('⚠️ فشل تحميل البيانات من الخادم، استخدام النسخة المحلية', err);
+                loadLocalBackup();
+            }
+            renderHome();
+        }
+
+        // حفظ البيانات إلى الخادم
+        async function saveData() {
+            if (!currentUser) return;
+            try {
+                if (!Array.isArray(data.projects)) {
+                    data.projects = [];
+                }
+                await apiRequest(`/projects/${currentUser}`, 'POST', { projects: data.projects });
+                console.log('✅ تم حفظ البيانات في الخادم:', data.projects.length, 'مشروع');
+                saveLocalBackup();
+            } catch (err) {
+                console.warn('⚠️ فشل حفظ البيانات على الخادم، استخدام التخزين المحلي', err);
+                saveLocalBackup();
+                showToast('⚠️ تم الحفظ محلياً، سيتم المزامنة عند استعادة الاتصال');
+            }
+        }
+
+        // النسخ الاحتياطي المحلي
+        function saveLocalBackup() {
+            try {
+                const key = `taskTrackerData_${currentUser}`;
+                localStorage.setItem(key, JSON.stringify({ projects: data.projects }));
+            } catch (e) {
+                console.warn('فشل حفظ النسخة المحلية', e);
+            }
+        }
+
+        function loadLocalBackup() {
+            try {
+                const key = `taskTrackerData_${currentUser}`;
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && Array.isArray(parsed.projects)) {
+                        data.projects = parsed.projects;
+                        console.log('✅ تم تحميل البيانات من النسخة المحلية:', data.projects.length, 'مشروع');
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn('فشل تحميل النسخة المحلية', e);
+            }
+            return false;
+        }
+
+        // ============================================================
+        //  AUTH FUNCTIONS
+        // ============================================================
         function getUsers() {
             try {
                 const raw = localStorage.getItem(USERS_KEY);
@@ -1249,35 +1596,6 @@
             return errors;
         }
 
-        // ============================================================
-        //  SERVER COMMUNICATION (fetch wrappers)
-        // ============================================================
-        async function apiRequest(endpoint, method = 'GET', body = null) {
-            const url = USE_SERVER ? `${SERVER_URL}${endpoint}` : endpoint;
-            const options = {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            };
-            if (body) options.body = JSON.stringify(body);
-
-            try {
-                const response = await fetch(url, options);
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.message || `HTTP error ${response.status}`);
-                }
-                return data;
-            } catch (err) {
-                console.error('API Error:', err);
-                throw err;
-            }
-        }
-
-        // ============================================================
-        //  AUTH FUNCTIONS
-        // ============================================================
         async function handleLogin() {
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value.trim();
@@ -1292,7 +1610,6 @@
             if (USE_SERVER) {
                 try {
                     const data = await apiRequest('/login', 'POST', { username, password });
-                    // تخزين التوكن أو اسم المستخدم
                     localStorage.setItem('token', data.token);
                     currentUser = username;
                     saveSession(username);
@@ -1307,7 +1624,6 @@
                     errorEl.style.display = 'block';
                 }
             } else {
-                // محاكاة محلية
                 const users = getUsers();
                 if (!users[username] || users[username].password !== password) {
                     errorEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
@@ -1484,7 +1800,8 @@
             document.getElementById('modal-username').textContent = '👤 ' + currentUser;
             const isPink = document.getElementById('app').classList.contains('theme-pink');
             document.querySelectorAll('#user-modal-overlay .theme-selector button').forEach(btn => {
-                btn.classList.toggle('active', (isPink && btn.dataset.theme === 'pink') || (!isPink && btn.dataset.theme === 'blue'));
+                btn.classList.toggle('active', (isPink && btn.dataset.theme === 'pink') || (!isPink && btn.dataset
+                .theme === 'blue'));
             });
             document.getElementById('user-modal-overlay').classList.add('show');
         }
@@ -1515,64 +1832,6 @@
             const saved = localStorage.getItem('taskTrackerTheme_' + currentUser);
             if (saved) setTheme(saved);
             else setTheme('pink');
-        }
-
-        // ============================================================
-        //  DATA LAYER (per user)
-        // ============================================================
-        const STORAGE_KEY_PREFIX = 'taskTrackerData_';
-        let data = { projects: [] };
-
-        async function loadUserData() {
-            if (!currentUser) return;
-            if (USE_SERVER) {
-                try {
-                    const projects = await apiRequest(`/projects/${currentUser}`, 'GET');
-                    data.projects = projects.projects || [];
-                } catch (err) {
-                    console.warn('فشل تحميل البيانات من الخادم، استخدام المخزون المحلي', err);
-                    loadLocalData();
-                }
-            } else {
-                loadLocalData();
-            }
-            renderHome();
-        }
-
-        function loadLocalData() {
-            const key = STORAGE_KEY_PREFIX + currentUser;
-            try {
-                const raw = localStorage.getItem(key);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (parsed && typeof parsed === 'object' && Array.isArray(parsed.projects)) {
-                        data = parsed;
-                    }
-                }
-            } catch (e) {}
-        }
-
-        async function saveData() {
-            if (!currentUser) return;
-            if (USE_SERVER) {
-                try {
-                    await apiRequest(`/projects/${currentUser}`, 'POST', { projects: data.projects });
-                } catch (err) {
-                    console.warn('فشل حفظ البيانات على الخادم، استخدام المخزون المحلي', err);
-                    saveLocalData();
-                }
-            } else {
-                saveLocalData();
-            }
-        }
-
-        function saveLocalData() {
-            const key = STORAGE_KEY_PREFIX + currentUser;
-            localStorage.setItem(key, JSON.stringify(data));
-        }
-
-        function genId() {
-            return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
         }
 
         // ============================================================
@@ -1659,7 +1918,7 @@
         }
 
         // ============================================================
-        //  CREATE PROJECT (المشكلة كانت هنا - تم إصلاحها)
+        //  CREATE PROJECT
         // ============================================================
         function showCreateProject() {
             openModal('مشروع جديد', `
@@ -1673,7 +1932,7 @@
                         if (!name) { showToast('الرجاء إدخال اسم المشروع'); return; }
                         const desc = document.getElementById('modal-project-desc').value.trim();
                         const project = {
-                            id: genId(),
+                            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
                             name: name,
                             description: desc,
                             createdAt: new Date().toISOString().slice(0, 10),
@@ -1682,7 +1941,7 @@
                             days: []
                         };
                         data.projects.push(project);
-                        await saveData();  // حفظ فوري
+                        await saveData();
                         closeModal();
                         showToast('✅ تم إنشاء المشروع');
                         renderHome();
@@ -1708,7 +1967,7 @@
         }
 
         // ============================================================
-        //  RENDER PROJECT (days as rows, tasks as columns)
+        //  RENDER PROJECT
         // ============================================================
         function renderProject() {
             const p = getCurrentProject();
@@ -1723,7 +1982,6 @@
             const tbody = document.getElementById('detail-tbody');
             if (!thead || !tbody) return;
 
-            // Sort days chronologically
             const sortedDays = [...p.days].sort((a, b) => {
                 if (!a.date) return 1;
                 if (!b.date) return -1;
@@ -1749,7 +2007,8 @@
             let bodyHTML = '';
             sortedDays.forEach((day, di) => {
                 bodyHTML += `<tr>`;
-                bodyHTML += `<td>${day.date || 'يوم'} <span style="font-size:11px;color:var(--text-light);">#${di+1}</span>
+                bodyHTML +=
+                    `<td>${day.date || 'يوم'} <span style="font-size:11px;color:var(--text-light);">#${di+1}</span>
                             <button class="btn-icon del" onclick="deleteDay(${di})" title="حذف اليوم" style="font-size:12px;margin-right:6px;">🗑️</button>
                         </td>`;
                 p.tasks.forEach(task => {
@@ -1757,9 +2016,11 @@
                     const reason = day.reasons && day.reasons[task.id] || '';
                     let cellClass = 'cell empty';
                     let content = '⬜';
-                    if (st === 'done') { cellClass = 'cell done'; content = '✅'; }
-                    else if (st === 'not_done') { cellClass = 'cell not-done'; content = '❌'; }
-                    const dotHtml = (st === 'not_done' && reason) ? `<span class="reason-dot" title="${reason}"></span>` : '';
+                    if (st === 'done') { cellClass = 'cell done';
+                        content = '✅'; } else if (st === 'not_done') { cellClass = 'cell not-done';
+                        content = '❌'; }
+                    const dotHtml = (st === 'not_done' && reason) ?
+                        `<span class="reason-dot" title="${reason}"></span>` : '';
                     bodyHTML += `
                         <td>
                             <div class="${cellClass}" 
@@ -1775,7 +2036,8 @@
                 bodyHTML += `</tr>`;
             });
 
-            let actionRow = `<tr style="background:var(--primary-soft);border-bottom:2px solid var(--primary-border);">`;
+            let actionRow =
+                `<tr style="background:var(--primary-soft);border-bottom:2px solid var(--primary-border);">`;
             actionRow += `<td style="font-weight:600;color:var(--text-muted);">إدارة المهام</td>`;
             p.tasks.forEach(task => {
                 actionRow += `
@@ -1818,7 +2080,8 @@
                 { text: 'إضافة', class: 'btn-primary', action: async () => {
                         const name = document.getElementById('modal-task-name').value.trim();
                         if (!name) { showToast('الرجاء إدخال اسم المهمة'); return; }
-                        const newTask = { id: genId(), name: name };
+                        const newTask = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+                            name: name };
                         p.tasks.push(newTask);
                         p.days.forEach(day => {
                             if (!day.completions) day.completions = {};
@@ -2057,7 +2320,8 @@
             container.innerHTML = archived.map(p => {
                 const total = p.tasks.length;
                 const doneCount = countDone(p);
-                const pct = total > 0 && p.days.length > 0 ? Math.round((doneCount / (total * p.days.length)) * 100) : 0;
+                const pct = total > 0 && p.days.length > 0 ? Math.round((doneCount / (total * p.days.length)) * 100) :
+                    0;
                 return `
                     <div class="archive-card">
                         <div class="title">📁 ${p.name}</div>
@@ -2137,7 +2401,8 @@
                 html += `</tr></thead><tbody>`;
 
                 if (sortedDays.length === 0) {
-                    html += `<tr><td colspan="${p.tasks.length+1}" style="text-align:center;padding:20px;color:#aaa;">لا توجد أيام</td></tr>`;
+                    html +=
+                        `<tr><td colspan="${p.tasks.length+1}" style="text-align:center;padding:20px;color:#aaa;">لا توجد أيام</td></tr>`;
                 } else {
                     sortedDays.forEach(day => {
                         html += `<tr><td>${day.date || 'يوم'}</td>`;
@@ -2270,10 +2535,8 @@
         // ============================================================
         //  INIT
         // ============================================================
-        // Check for existing session
         const session = getSession();
         if (session && session.username) {
-            // التحقق من صحة الجلسة عبر الخادم (اختياري)
             currentUser = session.username;
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('app').style.display = 'block';
@@ -2282,7 +2545,6 @@
             loadUserData();
         }
 
-        // Close popups on escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeModal();
@@ -2291,13 +2553,14 @@
             }
         });
 
-        // Close cell popup on outside click
         document.addEventListener('click', function(e) {
             const popup = document.getElementById('cell-popup');
             if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.closest('.cell')) {
                 closeCellPopup();
             }
         });
+
+        console.log('🚀 تطبيق متابعة المهام جاهز');
     </script>
 </body>
 </html>
