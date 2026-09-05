@@ -2,37 +2,46 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');  // استبدال bcrypt بـ bcryptjs
 const jwt = require('jsonwebtoken');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// ============================================================
+//  Middleware
+// ============================================================
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 
 // ============================================================
-//  الاتصال بقاعدة البيانات مع خيارات محسّنة لتجاوز مشاكل DNS
+//  خدمة الملفات الثابتة (تقديم واجهة المستخدم)
+// ============================================================
+app.use(express.static(path.join(__dirname, 'frontend')));
+
+// عند زيارة المسار الرئيسي، نرسل ملف index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
+
+// ============================================================
+//  الاتصال بقاعدة البيانات MongoDB Atlas
 // ============================================================
 const MONGODB_URI = process.env.MONGODB_URI;
-
-console.log('🚀 محاولة الاتصال بـ MongoDB Atlas...');
+console.log(`🚀 محاولة الاتصال بـ MongoDB Atlas...`);
 
 mongoose.connect(MONGODB_URI, {
-    serverSelectionTimeoutMS: 10000, // مهلة اختيار الخادم 10 ثوانٍ
+    serverSelectionTimeoutMS: 10000,
     socketTimeoutMS: 45000,
-    family: 4, // إجبار استخدام IPv4
+    family: 4,          // إجبار استخدام IPv4
     retryWrites: true,
     w: 'majority'
 })
 .then(() => console.log('✅ MongoDB connected successfully'))
 .catch(err => {
-    console.error('❌ MongoDB connection error:', err);
-    console.log('💡 تأكد من:');
-    console.log('  1. أنك أضفت 0.0.0.0/0 في Network Access');
-    console.log('  2. أن اسم المستخدم وكلمة المرور صحيحان');
-    console.log('  3. أن الرابط في ملف .env صحيح');
+    console.error('❌ MongoDB connection error:', err.message);
+    console.log('💡 تأكد من إعدادات الشبكة وبيانات الاتصال.');
 });
 
 // ============================================================
@@ -64,7 +73,6 @@ app.post('/api/signup', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // التحقق من صحة الإدخال
         if (!username || !password) {
             return res.status(400).json({ message: 'الرجاء ملء جميع الحقول' });
         }
@@ -81,7 +89,7 @@ app.post('/api/signup', async (req, res) => {
             return res.status(400).json({ message: errors.join(' • ') });
         }
 
-        // تشفير كلمة المرور
+        // تشفير كلمة المرور باستخدام bcryptjs
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // إنشاء المستخدم
@@ -113,11 +121,13 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
         }
 
+        // مقارنة كلمة المرور باستخدام bcryptjs
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
             return res.status(401).json({ message: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
         }
 
+        // إنشاء JWT (اختياري)
         const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '7d' });
         res.json({ message: 'تم تسجيل الدخول بنجاح', token });
     } catch (err) {
@@ -140,16 +150,19 @@ app.post('/api/change-password', async (req, res) => {
             return res.status(404).json({ message: 'المستخدم غير موجود' });
         }
 
+        // التحقق من كلمة المرور الحالية
         const valid = await bcrypt.compare(oldPassword, user.password);
         if (!valid) {
             return res.status(401).json({ message: 'كلمة المرور الحالية غير صحيحة' });
         }
 
+        // التحقق من صحة كلمة المرور الجديدة
         const errors = validatePassword(newPassword);
         if (errors.length > 0) {
             return res.status(400).json({ message: errors.join(' • ') });
         }
 
+        // تشفير كلمة المرور الجديدة وحفظها
         user.password = await bcrypt.hash(newPassword, 10);
         await user.save();
 
@@ -183,11 +196,13 @@ app.post('/api/projects/:username', async (req, res) => {
         const { username } = req.params;
         const { projects } = req.body;
 
+        // التأكد من وجود المستخدم
         const userExists = await User.findOne({ username });
         if (!userExists) {
             return res.status(404).json({ message: 'المستخدم غير موجود' });
         }
 
+        // تحديث أو إنشاء وثيقة المشاريع
         await Project.findOneAndUpdate(
             { username },
             { projects },
