@@ -1492,10 +1492,8 @@
         }
 
         // ============================================================
-        //  DATA LAYER (مع تحسينات الحفظ والتحميل)
+        //  DATA LAYER (مع دعم المصفوفة المباشرة)
         // ============================================================
-
-        // تحميل البيانات من الخادم
         async function loadUserData() {
             if (!currentUser) {
                 console.warn('⚠️ لا يوجد مستخدم حالياً');
@@ -1504,14 +1502,17 @@
             console.log(`🔄 جاري تحميل بيانات المستخدم: ${currentUser}`);
             try {
                 const result = await apiRequest(`/projects/${currentUser}`, 'GET');
-                if (result && Array.isArray(result.projects)) {
+                // دعم كل من المصفوفة المباشرة والكائن
+                if (Array.isArray(result)) {
+                    data.projects = result;
+                    console.log(`✅ تم تحميل ${data.projects.length} مشروع (مصفوفة مباشرة)`);
+                } else if (result && Array.isArray(result.projects)) {
                     data.projects = result.projects;
-                    console.log(`✅ تم تحميل ${data.projects.length} مشروع من الخادم`);
+                    console.log(`✅ تم تحميل ${data.projects.length} مشروع (كائن)`);
                 } else {
                     data.projects = [];
-                    console.warn('⚠️ بيانات غير متوقعة من الخادم، تم تهيئة مصفوفة فارغة');
+                    console.warn('⚠️ بيانات غير متوقعة، تم تهيئة مصفوفة فارغة', result);
                 }
-                // حفظ نسخة محلية احتياطية
                 saveLocalBackup();
             } catch (err) {
                 console.warn('⚠️ فشل تحميل البيانات من الخادم، استخدام النسخة المحلية', err);
@@ -1524,7 +1525,6 @@
             renderHome();
         }
 
-        // حفظ البيانات إلى الخادم
         async function saveData() {
             if (!currentUser) {
                 console.warn('⚠️ لا يوجد مستخدم لحفظ البيانات');
@@ -1537,7 +1537,6 @@
                 console.log(`💾 جاري حفظ ${data.projects.length} مشروع للمستخدم ${currentUser}`);
                 await apiRequest(`/projects/${currentUser}`, 'POST', { projects: data.projects });
                 console.log('✅ تم حفظ البيانات في الخادم بنجاح');
-                // حفظ نسخة محلية بعد الحفظ الناجح
                 saveLocalBackup();
                 showToast('✅ تم حفظ البيانات');
             } catch (err) {
@@ -1547,7 +1546,6 @@
             }
         }
 
-        // النسخ الاحتياطي المحلي
         function saveLocalBackup() {
             try {
                 const key = `taskTrackerData_${currentUser}`;
