@@ -1,0 +1,2316 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متابعة المهام اليومية</title>
+    <!-- jsPDF & html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+    <style>
+        /* ===== CSS VARIABLES / THEMES ===== */
+        :root {
+            --primary: #d6336c;
+            --primary-light: #ff6b9d;
+            --primary-bg: #fff5f7;
+            --primary-border: #ffe4ed;
+            --primary-hover: #f0558a;
+            --primary-soft: #fff0f5;
+            --primary-card: #fff9fb;
+            --primary-shadow: rgba(255, 107, 157, 0.15);
+            --sticker-color: #ff6b9d;
+            --header-color: #d6336c;
+            --cell-done-bg: #e8f8ef;
+            --cell-done-border: #2ecc71;
+            --cell-not-bg: #fde8e8;
+            --cell-not-border: #ff6b6b;
+            --cell-empty-bg: #faf5f7;
+            --cell-empty-border: #f0e6ea;
+            --text-dark: #2d1b2a;
+            --text-muted: #6b4b5a;
+            --text-light: #b8a0a8;
+            --toast-bg: #2d1b2a;
+            --btn-primary-bg: #ff6b9d;
+            --btn-primary-text: #fff;
+            --btn-outline-border: #ffb6d3;
+            --btn-outline-text: #d6336c;
+            --sticker1: '🌸';
+            --sticker2: '✨';
+            --sticker3: '🌷';
+        }
+
+        .theme-blue {
+            --primary: #1a5a9c;
+            --primary-light: #4a90d9;
+            --primary-bg: #f0f6ff;
+            --primary-border: #cce0ff;
+            --primary-hover: #3a7bc8;
+            --primary-soft: #e6f0ff;
+            --primary-card: #f7faff;
+            --primary-shadow: rgba(74, 144, 217, 0.15);
+            --sticker-color: #4a90d9;
+            --header-color: #1a5a9c;
+            --cell-done-bg: #e8f4f8;
+            --cell-done-border: #2e86c1;
+            --cell-not-bg: #fde8e8;
+            --cell-not-border: #ff6b6b;
+            --cell-empty-bg: #f5f8fc;
+            --cell-empty-border: #dce6f0;
+            --text-dark: #1a2a3a;
+            --text-muted: #4a6a8a;
+            --text-light: #8aaccc;
+            --toast-bg: #1a2a3a;
+            --btn-primary-bg: #4a90d9;
+            --btn-primary-text: #fff;
+            --btn-outline-border: #8ab4e8;
+            --btn-outline-text: #1a5a9c;
+            --sticker1: '⚡';
+            --sticker2: '🚀';
+            --sticker3: '💻';
+        }
+
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+        }
+        body {
+            background: var(--primary-bg);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px 16px 40px;
+            transition: background 0.3s, color 0.3s;
+        }
+        #app {
+            max-width: 1300px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 40px 40px 30px 30px;
+            box-shadow: 0 20px 60px var(--primary-shadow);
+            padding: 28px 28px 40px;
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.3s;
+        }
+        .sticker {
+            position: absolute;
+            opacity: 0.08;
+            font-size: 80px;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+            transition: opacity 0.3s;
+        }
+        .sticker-1 { top: -10px; left: -10px; transform: rotate(-15deg); }
+        .sticker-1::before { content: var(--sticker1); }
+        .sticker-2 { bottom: 20px; right: -10px; transform: rotate(20deg); font-size: 100px; }
+        .sticker-2::before { content: var(--sticker2); }
+        .sticker-3 { top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(10deg); font-size: 200px; opacity: 0.04; }
+        .sticker-3::before { content: var(--sticker3); }
+
+        /* ===== LOGIN / ACCOUNT ===== */
+        #login-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--primary-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+        #login-page.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .login-box {
+            background: #fff;
+            border-radius: 40px;
+            padding: 40px 36px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px var(--primary-shadow);
+            border: 1px solid var(--primary-border);
+        }
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: var(--header-color);
+        }
+        .login-box label {
+            display: block;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            margin-top: 14px;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--primary-border);
+            border-radius: 18px;
+            font-size: 14px;
+            background: var(--primary-bg);
+            transition: 0.2s;
+            outline: none;
+            color: var(--text-dark);
+        }
+        .login-box input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px var(--primary-shadow);
+        }
+        .login-box .btn {
+            width: 100%;
+            margin-top: 18px;
+            padding: 12px;
+            font-size: 16px;
+        }
+        .login-box .toggle-link {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .login-box .toggle-link a {
+            color: var(--header-color);
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .login-box .toggle-link a:hover {
+            text-decoration: underline;
+        }
+        .login-box .error-msg {
+            color: #ff6b6b;
+            font-size: 13px;
+            margin-top: 8px;
+            text-align: center;
+            display: none;
+        }
+        .login-box .success-msg {
+            color: #2ecc71;
+            font-size: 13px;
+            margin-top: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        /* ===== SUCCESS PAGE (after signup) ===== */
+        #success-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--primary-bg);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        #success-page.show {
+            display: flex;
+        }
+        .success-box {
+            background: #fff;
+            border-radius: 40px;
+            padding: 40px 36px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px var(--primary-shadow);
+            border: 1px solid var(--primary-border);
+            text-align: center;
+        }
+        .success-box .icon { font-size: 64px; margin-bottom: 12px; }
+        .success-box h2 { color: var(--header-color); margin-bottom: 12px; }
+        .success-box p { color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 8px; }
+        .success-box .credentials {
+            background: var(--primary-soft);
+            padding: 12px;
+            border-radius: 16px;
+            margin: 12px 0;
+            direction: ltr;
+            text-align: left;
+            font-family: monospace;
+            font-size: 14px;
+            border: 1px solid var(--primary-border);
+        }
+        .success-box .credentials span {
+            display: block;
+            font-family: monospace;
+            color: var(--text-dark);
+        }
+        .success-box .btn {
+            width: 100%;
+            margin-top: 16px;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        /* ===== USER MENU (as modal) ===== */
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+        .user-menu .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            border: 2px solid var(--primary-border);
+            transition: 0.2s;
+        }
+        .user-menu .avatar:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+
+        /* Modal overlay for user menu */
+        #user-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(4px);
+            z-index: 1100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        #user-modal-overlay.show {
+            display: flex;
+        }
+        .user-modal {
+            background: #fff;
+            border-radius: 36px;
+            padding: 32px 36px 36px;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.20);
+            animation: modalIn 0.3s ease;
+            position: relative;
+        }
+        .user-modal .modal-close {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: 0.2s;
+        }
+        .user-modal .modal-close:hover {
+            color: var(--header-color);
+            transform: rotate(90deg);
+        }
+        .user-modal .username {
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--header-color);
+            text-align: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-border);
+        }
+        .user-modal .theme-selector {
+            display: flex;
+            gap: 12px;
+            margin: 16px 0;
+            justify-content: center;
+        }
+        .user-modal .theme-selector button {
+            padding: 6px 20px;
+            border-radius: 30px;
+            border: 2px solid var(--primary-border);
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.2s;
+            color: var(--text-muted);
+        }
+        .user-modal .theme-selector button.active {
+            background: var(--primary-light);
+            color: #fff;
+            border-color: var(--primary-light);
+        }
+        .user-modal .theme-selector button:hover {
+            transform: scale(1.05);
+        }
+        .user-modal .menu-item {
+            display: block;
+            width: 100%;
+            padding: 10px 0;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.2s;
+            border: none;
+            background: none;
+            text-align: center;
+            font-size: 15px;
+            border-radius: 16px;
+            margin-top: 4px;
+        }
+        .user-modal .menu-item:hover {
+            background: var(--primary-soft);
+            color: var(--header-color);
+        }
+        .user-modal .menu-item.danger {
+            color: #ff6b6b;
+        }
+        .user-modal .menu-item.danger:hover {
+            background: #fde8e8;
+            color: #e55555;
+        }
+
+        /* ===== REST OF STYLES ===== */
+        h1, h2, h3 {
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        h1 { font-size: 28px; color: var(--header-color); }
+        h2 { font-size: 22px; color: var(--header-color); }
+        h3 { font-size: 17px; color: var(--text-muted); }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: none;
+            border-radius: 60px;
+            padding: 10px 22px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            background: var(--primary-border);
+            color: var(--btn-outline-text);
+            transition: 0.25s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            text-decoration: none;
+            line-height: 1.2;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--primary-shadow);
+        }
+        .btn-primary {
+            background: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+            box-shadow: 0 4px 14px var(--primary-shadow);
+        }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--btn-outline-border);
+            color: var(--btn-outline-text);
+        }
+        .btn-outline:hover { background: var(--primary-soft); }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .btn-danger { background: #ff6b6b; color: #fff; }
+        .btn-danger:hover { background: #e55555; }
+        .btn-success { background: #2ecc71; color: #fff; }
+        .btn-success:hover { background: #27ae60; }
+
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 28px;
+            position: relative;
+            z-index: 1;
+        }
+        .app-header .logo { display: flex; align-items: center; gap: 10px; }
+        .app-header .logo span { font-size: 32px; }
+        .app-header .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+        .page { display: none; animation: fadeUp 0.35s ease; position: relative; z-index: 1; }
+        .page.active { display: block; }
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 12px;
+        }
+        .project-card {
+            background: var(--primary-card);
+            border-radius: 28px;
+            padding: 22px 24px 24px;
+            border: 1.5px solid var(--primary-border);
+            transition: 0.25s;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-light);
+            box-shadow: 0 12px 32px var(--primary-shadow);
+        }
+        .project-card .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--header-color);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .project-card .card-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .project-card .card-meta span {
+            background: var(--primary-soft);
+            padding: 2px 12px;
+            border-radius: 30px;
+        }
+        .project-card .card-status {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            background: #2ecc71;
+            padding: 2px 14px;
+            border-radius: 30px;
+            letter-spacing: 0.3px;
+        }
+        .project-card .card-status.archived { background: var(--text-light); }
+        .project-card .card-progress {
+            margin-top: 12px;
+            height: 4px;
+            background: var(--primary-border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .project-card .card-progress .bar {
+            height: 100%;
+            background: var(--primary-light);
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+
+        .detail-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-border);
+        }
+        .detail-header .left { display: flex; align-items: center; gap: 14px; }
+        .detail-header .left .back {
+            font-size: 24px;
+            cursor: pointer;
+            background: var(--primary-soft);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            color: var(--text-muted);
+        }
+        .detail-header .left .back:hover { background: var(--primary-border); }
+        .detail-header .project-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--header-color);
+        }
+        .detail-header .project-name small {
+            font-weight: 400;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-right: 8px;
+        }
+        .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .table-wrap {
+            overflow: auto;
+            margin-top: 12px;
+            border-radius: 24px;
+            border: 1px solid var(--primary-border);
+            background: var(--primary-card);
+            padding: 4px 2px 2px 2px;
+            max-height: 600px;
+            scroll-behavior: smooth;
+        }
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 600px;
+        }
+        .table-wrap th {
+            background: var(--primary-soft);
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-border);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+        .table-wrap th:first-child {
+            text-align: right;
+            padding-right: 16px;
+            min-width: 100px;
+            background: var(--primary-bg);
+            z-index: 6;
+            left: 0;
+            position: sticky;
+        }
+        .table-wrap td {
+            padding: 8px 6px;
+            text-align: center;
+            border-bottom: 1px solid var(--primary-border);
+            vertical-align: middle;
+        }
+        .table-wrap td:first-child {
+            text-align: right;
+            padding-right: 16px;
+            font-weight: 500;
+            color: var(--text-dark);
+            background: var(--primary-card);
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            border-left: 1px solid var(--primary-border);
+            min-width: 100px;
+            white-space: nowrap;
+        }
+        .table-wrap tr:hover td { background: var(--primary-soft); }
+        .table-wrap tr:hover td:first-child { background: var(--primary-border); }
+
+        .cell {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 22px;
+            transition: 0.2s;
+            background: var(--cell-empty-bg);
+            border: 1.5px solid var(--cell-empty-border);
+            user-select: none;
+        }
+        .cell:hover {
+            transform: scale(1.08);
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 12px var(--primary-shadow);
+        }
+        .cell.done {
+            background: var(--cell-done-bg);
+            border-color: var(--cell-done-border);
+            color: #27ae60;
+        }
+        .cell.not-done {
+            background: var(--cell-not-bg);
+            border-color: var(--cell-not-border);
+            color: #e55555;
+        }
+        .cell.empty {
+            background: var(--cell-empty-bg);
+            border-color: var(--cell-empty-border);
+        }
+        .cell .reason-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 12px;
+            height: 12px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+            pointer-events: none;
+            display: none;
+        }
+        .cell.not-done .reason-dot { display: block; }
+        .cell .cell-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .task-actions .btn-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-light);
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .task-actions .btn-icon:hover {
+            background: var(--primary-border);
+            color: var(--header-color);
+        }
+        .task-actions .btn-icon.del:hover {
+            background: var(--cell-not-bg);
+            color: #e55555;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-light);
+        }
+        .empty-state .icon { font-size: 64px; margin-bottom: 12px; opacity: 0.5; }
+        .empty-state p { font-size: 16px; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: #fff;
+            border-radius: 36px;
+            padding: 32px 36px 36px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.20);
+            animation: modalIn 0.3s ease;
+            position: relative;
+        }
+        @keyframes modalIn {
+            0% { opacity: 0; transform: scale(0.94) translateY(30px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal h3 { font-size: 20px; margin-bottom: 18px; color: var(--header-color); }
+        .modal label {
+            display: block;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            margin-top: 14px;
+        }
+        .modal input, .modal textarea, .modal select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--primary-border);
+            border-radius: 18px;
+            font-size: 14px;
+            background: var(--primary-bg);
+            transition: 0.2s;
+            outline: none;
+            color: var(--text-dark);
+        }
+        .modal input:focus, .modal textarea:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px var(--primary-shadow);
+        }
+        .modal textarea { resize: vertical; min-height: 60px; }
+        .modal .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+        .modal .modal-actions .btn { flex: 1; }
+        .modal .modal-close {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: 0.2s;
+        }
+        .modal .modal-close:hover {
+            color: var(--header-color);
+            transform: rotate(90deg);
+        }
+
+        .cell-popup {
+            position: fixed;
+            z-index: 800;
+            background: #fff;
+            border-radius: 28px;
+            padding: 24px 28px 28px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+            min-width: 280px;
+            max-width: 360px;
+            animation: modalIn 0.25s ease;
+            border: 1px solid var(--primary-border);
+            display: none;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .cell-popup.show { display: block; }
+        .cell-popup .popup-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-dark);
+            margin-bottom: 14px;
+            text-align: center;
+        }
+        .cell-popup .popup-options {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 14px;
+            justify-content: center;
+        }
+        .cell-popup .popup-options button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 16px;
+            border: 2px solid var(--primary-border);
+            background: #fff;
+            font-size: 32px;
+            cursor: pointer;
+            transition: 0.2s;
+            max-width: 80px;
+        }
+        .cell-popup .popup-options button:hover {
+            transform: scale(1.05);
+            border-color: var(--primary-light);
+        }
+        .cell-popup .popup-options button.done-btn:hover {
+            border-color: var(--cell-done-border);
+            background: var(--cell-done-bg);
+        }
+        .cell-popup .popup-options button.not-btn:hover {
+            border-color: var(--cell-not-border);
+            background: var(--cell-not-bg);
+        }
+        .cell-popup .popup-reason { margin-top: 6px; }
+        .cell-popup .popup-reason input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--primary-border);
+            border-radius: 16px;
+            font-size: 14px;
+            background: var(--primary-bg);
+            outline: none;
+            color: var(--text-dark);
+        }
+        .cell-popup .popup-reason input:focus { border-color: var(--primary-light); }
+        .cell-popup .popup-close {
+            margin-top: 16px;
+            text-align: center;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .cell-popup .popup-close button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 16px;
+            border-radius: 20px;
+            transition: 0.2s;
+        }
+        .cell-popup .popup-close button:hover {
+            color: var(--header-color);
+            background: var(--primary-soft);
+        }
+        .cell-popup .popup-close button.save-btn {
+            color: var(--header-color);
+            font-weight: 600;
+            background: var(--primary-soft);
+        }
+        .cell-popup .popup-close button.save-btn:hover { background: var(--primary-border); }
+        .cell-popup .popup-close button.clear-btn {
+            color: #ff6b6b;
+        }
+        .cell-popup .popup-close button.clear-btn:hover {
+            background: var(--cell-not-bg);
+            color: #e55555;
+        }
+
+        .archive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+            margin-top: 12px;
+        }
+        .archive-card {
+            background: var(--primary-card);
+            border-radius: 24px;
+            padding: 20px 22px;
+            border: 1px solid var(--primary-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .archive-card .title { font-weight: 700; color: var(--text-muted); font-size: 18px; }
+        .archive-card .meta { font-size: 13px; color: var(--text-muted); }
+        .archive-card .actions { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+
+        @media (max-width: 768px) {
+            #app { padding: 16px 12px 28px; border-radius: 28px; }
+            .app-header .logo h1 { font-size: 22px; }
+            .detail-header .project-name { font-size: 20px; }
+            .modal { padding: 24px 18px 28px; margin: 10px; }
+            .cell { width: 38px; height: 38px; font-size: 18px; }
+            .cell .reason-dot { width: 10px; height: 10px; top: -3px; right: -3px; }
+            .table-wrap td:first-child { min-width: 80px; font-size: 13px; padding-right: 10px; }
+            .table-wrap th:first-child { min-width: 80px; font-size: 12px; padding-right: 10px; }
+            .project-grid { grid-template-columns: 1fr; }
+            .archive-grid { grid-template-columns: 1fr; }
+            .sticker { display: none; }
+            .detail-actions .btn { font-size: 12px; padding: 6px 14px; }
+            .btn { font-size: 13px; padding: 8px 16px; }
+            .cell-popup { min-width: 240px; padding: 20px; }
+            .login-box, .success-box, .user-modal { padding: 30px 20px; margin: 16px; }
+        }
+        @media (max-width: 480px) {
+            .app-header { flex-direction: column; align-items: stretch; }
+            .app-header .actions { justify-content: stretch; }
+            .app-header .actions .btn { flex: 1; justify-content: center; }
+            .detail-header { flex-direction: column; align-items: stretch; }
+            .detail-header .left { flex-wrap: wrap; }
+            .detail-actions { justify-content: stretch; }
+            .detail-actions .btn { flex: 1; justify-content: center; }
+            .modal .modal-actions { flex-direction: column; }
+            .modal .modal-actions .btn { flex: none; }
+            .cell-popup { min-width: 200px; padding: 16px; max-width: 90vw; }
+            .cell-popup .popup-options button { font-size: 28px; padding: 8px; max-width: 60px; }
+        }
+
+        .table-wrap::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .table-wrap::-webkit-scrollbar-track {
+            background: var(--primary-soft);
+            border-radius: 10px;
+        }
+        .table-wrap::-webkit-scrollbar-thumb {
+            background: var(--primary-border);
+            border-radius: 10px;
+        }
+        .table-wrap::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--toast-bg);
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 60px;
+            font-size: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.20);
+            z-index: 2000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 0.4s ease;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #pdf-export-area {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 210mm;
+            padding: 12mm 14mm;
+            background: #fff;
+            font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+            direction: rtl;
+            z-index: -1;
+            opacity: 0;
+            pointer-events: none;
+            overflow: visible;
+        }
+        #pdf-export-area table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+        #pdf-export-area th {
+            background: #f8eef2;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-weight: 600;
+        }
+        #pdf-export-area td {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        #pdf-export-area td:first-child { text-align: right; font-weight: 500; }
+        #pdf-export-area .pdf-title { font-size: 18px; font-weight: 700; color: var(--header-color); margin-bottom: 4px; }
+        #pdf-export-area .pdf-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+        #pdf-export-area .pdf-footer {
+            margin-top: 12px;
+            font-size: 10px;
+            color: #aaa;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 8px;
+        }
+        #pdf-export-area .done-icon { color: #27ae60; font-weight: bold; }
+        #pdf-export-area .not-icon { color: #e55555; font-weight: bold; }
+        #pdf-export-area .reason-text { font-size: 9px; color: #888; display: block; }
+        #pdf-export-area .empty-cell { color: #ddd; }
+
+        .pdf-export-active #pdf-export-area {
+            left: 0;
+            opacity: 1;
+            pointer-events: none;
+            z-index: 9999;
+            position: fixed;
+            top: 0;
+            width: 210mm;
+            height: auto;
+            background: #fff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LOGIN PAGE ===== -->
+    <div id="login-page">
+        <div class="login-box">
+            <h2 id="login-title">🔐 تسجيل الدخول</h2>
+            <div id="login-fields">
+                <label>اسم المستخدم</label>
+                <input type="text" id="login-username" placeholder="أدخل اسم المستخدم">
+                <label>كلمة المرور</label>
+                <input type="password" id="login-password" placeholder="أدخل كلمة المرور">
+            </div>
+            <div id="signup-fields" style="display:none;">
+                <label>اسم المستخدم</label>
+                <input type="text" id="signup-username" placeholder="اختر اسم مستخدم">
+                <label>كلمة المرور</label>
+                <input type="password" id="signup-password" placeholder="أدخل كلمة مرور قوية">
+                <label>تأكيد كلمة المرور</label>
+                <input type="password" id="signup-password-confirm" placeholder="أعد إدخال كلمة المرور">
+            </div>
+            <div class="error-msg" id="login-error"></div>
+            <div class="success-msg" id="login-success"></div>
+            <button class="btn btn-primary" id="login-btn" onclick="handleLogin()">تسجيل الدخول</button>
+            <button class="btn btn-primary" id="signup-btn" style="display:none;" onclick="handleSignup()">إنشاء حساب</button>
+            <div class="toggle-link">
+                <span id="toggle-text">ليس لديك حساب؟</span>
+                <a id="toggle-link" onclick="toggleAuthMode()">إنشاء حساب</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SUCCESS PAGE (after signup) ===== -->
+    <div id="success-page">
+        <div class="success-box">
+            <div class="icon">🎉</div>
+            <h2>تم إنشاء الحساب بنجاح!</h2>
+            <p>يرجى حفظ بياناتك في مكان آمن:</p>
+            <div class="credentials" id="success-credentials">
+                <span><strong>اسم المستخدم:</strong> <span id="success-username"></span></span>
+                <span><strong>كلمة المرور:</strong> <span id="success-password"></span></span>
+            </div>
+            <p style="font-size:13px; color:var(--text-light);">📸 ننصحك بأخذ لقطة شاشة لحفظ البيانات.</p>
+            <button class="btn btn-primary" onclick="goToLogin()">تم، عودة إلى تسجيل الدخول</button>
+        </div>
+    </div>
+
+    <!-- ===== MAIN APP ===== -->
+    <div id="app" class="theme-pink" style="display:none;">
+        <div class="sticker sticker-1"></div>
+        <div class="sticker sticker-2"></div>
+        <div class="sticker sticker-3"></div>
+
+        <div class="app-header">
+            <div class="logo">
+                <span>📋</span>
+                <h1>متابعة المهام</h1>
+            </div>
+            <div class="actions">
+                <div class="user-menu">
+                    <div class="avatar" id="user-avatar" onclick="toggleUserModal()">👤</div>
+                </div>
+                <button class="btn btn-primary" onclick="showCreateProject()">➕ مشروع جديد</button>
+                <button class="btn btn-outline" onclick="showArchived()">📦 الأرشيف</button>
+            </div>
+        </div>
+
+        <div id="page-home" class="page active">
+            <div id="project-list" class="project-grid"></div>
+        </div>
+
+        <div id="page-project" class="page">
+            <div class="detail-header">
+                <div class="left">
+                    <div class="back" onclick="goHome()" title="رجوع">←</div>
+                    <div class="project-name" id="detail-project-name">المشروع <small id="detail-project-status"></small></div>
+                </div>
+                <div class="detail-actions">
+                    <button class="btn btn-sm btn-outline" onclick="addTask()">➕ مهمة</button>
+                    <button class="btn btn-sm btn-outline" onclick="addDay()">📅 إضافة يوم</button>
+                    <button class="btn btn-sm btn-success" onclick="archiveProject()">📦 أرشفة</button>
+                    <button class="btn btn-sm btn-primary" onclick="exportPDF()">📄 PDF</button>
+                </div>
+            </div>
+            <div class="table-wrap" id="detail-table-wrap">
+                <table id="detail-table">
+                    <thead id="detail-thead"></thead>
+                    <tbody id="detail-tbody"></tbody>
+                </table>
+            </div>
+            <div style="margin-top:10px;font-size:13px;color:var(--text-light);display:flex;gap:16px;flex-wrap:wrap;">
+                <span>✅ أنجزت</span>
+                <span>❌ لم تنجز</span>
+                <span>⬜ لم تحدد</span>
+                <span style="color:var(--cell-not-border);">ⓘ النقطة الحمراء تعني وجود سبب</span>
+            </div>
+        </div>
+
+        <div id="page-archived" class="page">
+            <div class="detail-header">
+                <div class="left">
+                    <div class="back" onclick="goHome()" title="رجوع">←</div>
+                    <div class="project-name">📦 المشاريع المؤرشفة</div>
+                </div>
+                <button class="btn btn-outline" onclick="goHome()">🏠 الرئيسية</button>
+            </div>
+            <div id="archive-list" class="archive-grid"></div>
+            <div class="empty-state" id="archive-empty" style="display:none;">
+                <div class="icon">📭</div>
+                <p>لا توجد مشاريع مؤرشفة</p>
+            </div>
+        </div>
+
+        <!-- ===== USER MODAL (centered) ===== -->
+        <div id="user-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeUserModal()">
+            <div class="user-modal">
+                <button class="modal-close" onclick="closeUserModal()">✕</button>
+                <div class="username" id="modal-username">المستخدم</div>
+                <div class="theme-selector">
+                    <button data-theme="pink" onclick="setTheme('pink'); closeUserModal();">🌸</button>
+                    <button data-theme="blue" onclick="setTheme('blue'); closeUserModal();">💙</button>
+                </div>
+                <button class="menu-item" onclick="changePassword(); closeUserModal();">🔑 تغيير كلمة المرور</button>
+                <button class="menu-item danger" onclick="logout(); closeUserModal();">🚪 تسجيل الخروج</button>
+            </div>
+        </div>
+
+        <!-- ===== OTHER MODALS ===== -->
+        <div id="modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+            <div class="modal" id="modal-content">
+                <button class="modal-close" onclick="closeModal()">✕</button>
+                <h3 id="modal-title">عنوان</h3>
+                <div id="modal-body"></div>
+                <div class="modal-actions" id="modal-actions"></div>
+            </div>
+        </div>
+
+        <div id="cell-popup" class="cell-popup" style="display:none;">
+            <div class="popup-title" id="popup-title">تحديد الحالة</div>
+            <div class="popup-options">
+                <button class="done-btn" onclick="setCellStatus('done')">✅</button>
+                <button class="not-btn" onclick="setCellStatus('not_done')">❌</button>
+            </div>
+            <div class="popup-reason" id="popup-reason-wrap" style="display:none;">
+                <input type="text" id="popup-reason-input" placeholder="سبب عدم الإنجاز...">
+            </div>
+            <div class="popup-close">
+                <button class="clear-btn" onclick="setCellStatus('clear')">🗑️ إلغاء التحديد</button>
+                <button class="save-btn" onclick="saveCellReason()">حفظ</button>
+            </div>
+        </div>
+
+        <div id="pdf-export-area"></div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  CONFIGURATION: SWITCH BETWEEN LOCAL & SERVER MODE
+        // ============================================================
+        const USE_SERVER = true;  // change to true when server is ready
+       const SERVER_URL = '/api';   // يصبح الطلب إلى نفس الخادم
+
+        // ============================================================
+        //  AUTHENTICATION SYSTEM (localStorage simulation)
+        // ============================================================
+        const USERS_KEY = 'taskTrackerUsers';
+        const SESSION_KEY = 'taskTrackerSession';
+
+        let currentUser = null;
+        let isLoginMode = true;
+
+        function getUsers() {
+            try {
+                const raw = localStorage.getItem(USERS_KEY);
+                return raw ? JSON.parse(raw) : {};
+            } catch { return {}; }
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        }
+
+        function getSession() {
+            try {
+                const raw = localStorage.getItem(SESSION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch { return null; }
+        }
+
+        function saveSession(username) {
+            localStorage.setItem(SESSION_KEY, JSON.stringify({ username, timestamp: Date.now() }));
+        }
+
+        function clearSession() {
+            localStorage.removeItem(SESSION_KEY);
+        }
+
+        function validatePassword(password) {
+            const errors = [];
+            if (password.length < 8) errors.push('يجب أن تكون كلمة المرور 8 محارف على الأقل');
+            if (!/[A-Z]/.test(password)) errors.push('يجب أن تحتوي على حرف كبير واحد على الأقل');
+            if (!/[a-z]/.test(password)) errors.push('يجب أن تحتوي على حرف صغير واحد على الأقل');
+            if (!/[0-9]/.test(password)) errors.push('يجب أن تحتوي على رقم واحد على الأقل');
+            return errors;
+        }
+
+        // ============================================================
+        //  AUTH FUNCTIONS (with server fallback)
+        // ============================================================
+        async function handleLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const errorEl = document.getElementById('login-error');
+
+            if (!username || !password) {
+                errorEl.textContent = 'الرجاء ملء جميع الحقول';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (USE_SERVER) {
+                try {
+                    const res = await fetch(`${SERVER_URL}/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        errorEl.textContent = data.message || 'فشل تسجيل الدخول';
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+                    currentUser = username;
+                    saveSession(username);
+                    errorEl.style.display = 'none';
+                    document.getElementById('login-page').classList.add('hidden');
+                    document.getElementById('app').style.display = 'block';
+                    updateUserUI();
+                    loadTheme();
+                    loadUserData();
+                } catch (err) {
+                    errorEl.textContent = 'خطأ في الاتصال بالخادم';
+                    errorEl.style.display = 'block';
+                }
+            } else {
+                const users = getUsers();
+                if (!users[username] || users[username].password !== password) {
+                    errorEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+                currentUser = username;
+                saveSession(username);
+                errorEl.style.display = 'none';
+                document.getElementById('login-page').classList.add('hidden');
+                document.getElementById('app').style.display = 'block';
+                updateUserUI();
+                loadTheme();
+                loadUserData();
+            }
+        }
+
+        async function handleSignup() {
+            const username = document.getElementById('signup-username').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirm = document.getElementById('signup-password-confirm').value;
+            const errorEl = document.getElementById('login-error');
+
+            if (!username || !password || !confirm) {
+                errorEl.textContent = 'الرجاء ملء جميع الحقول';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (password !== confirm) {
+                errorEl.textContent = 'كلمتا المرور غير متطابقتين';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const errors = validatePassword(password);
+            if (errors.length > 0) {
+                errorEl.textContent = errors.join(' • ');
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (USE_SERVER) {
+                try {
+                    const res = await fetch(`${SERVER_URL}/signup`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        errorEl.textContent = data.message || 'فشل إنشاء الحساب';
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+                    showSuccessPage(username, password);
+                } catch (err) {
+                    errorEl.textContent = 'خطأ في الاتصال بالخادم';
+                    errorEl.style.display = 'block';
+                }
+            } else {
+                const users = getUsers();
+                if (users[username]) {
+                    errorEl.textContent = 'اسم المستخدم محجوز، الرجاء اختيار اسم آخر';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+                users[username] = { password };
+                saveUsers(users);
+                showSuccessPage(username, password);
+            }
+        }
+
+        function showSuccessPage(username, password) {
+            document.getElementById('success-username').textContent = username;
+            document.getElementById('success-password').textContent = password;
+            document.getElementById('success-page').classList.add('show');
+            document.getElementById('signup-username').value = '';
+            document.getElementById('signup-password').value = '';
+            document.getElementById('signup-password-confirm').value = '';
+        }
+
+        function goToLogin() {
+            document.getElementById('success-page').classList.remove('show');
+            if (!isLoginMode) toggleAuthMode();
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('login-success').style.display = 'none';
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('login-title').textContent = isLoginMode ? '🔐 تسجيل الدخول' : '📝 إنشاء حساب';
+            document.getElementById('login-fields').style.display = isLoginMode ? 'block' : 'none';
+            document.getElementById('signup-fields').style.display = isLoginMode ? 'none' : 'block';
+            document.getElementById('login-btn').style.display = isLoginMode ? 'block' : 'none';
+            document.getElementById('signup-btn').style.display = isLoginMode ? 'none' : 'block';
+            document.getElementById('toggle-text').textContent = isLoginMode ? 'ليس لديك حساب؟' : 'لديك حساب بالفعل؟';
+            document.getElementById('toggle-link').textContent = isLoginMode ? 'إنشاء حساب' : 'تسجيل الدخول';
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('login-success').style.display = 'none';
+        }
+
+        function logout() {
+            if (USE_SERVER) {
+                fetch(`${SERVER_URL}/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
+            }
+            clearSession();
+            currentUser = null;
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('login-page').classList.remove('hidden');
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            document.getElementById('signup-username').value = '';
+            document.getElementById('signup-password').value = '';
+            document.getElementById('signup-password-confirm').value = '';
+            closeUserModal();
+            if (!isLoginMode) toggleAuthMode();
+            showToast('🚪 تم تسجيل الخروج');
+        }
+
+        async function changePassword() {
+            openModal('تغيير كلمة المرور', `
+                <label>كلمة المرور الحالية</label>
+                <input type="password" id="old-password" placeholder="أدخل كلمة المرور الحالية">
+                <label>كلمة المرور الجديدة</label>
+                <input type="password" id="new-password" placeholder="أدخل كلمة مرور جديدة">
+                <label>تأكيد كلمة المرور الجديدة</label>
+                <input type="password" id="new-password-confirm" placeholder="أعد إدخال كلمة المرور">
+            `, [
+                { text: 'تغيير', class: 'btn-primary', action: async () => {
+                        const old = document.getElementById('old-password').value;
+                        const newPass = document.getElementById('new-password').value;
+                        const confirm = document.getElementById('new-password-confirm').value;
+
+                        if (newPass !== confirm) {
+                            showToast('⚠️ كلمتا المرور غير متطابقتين');
+                            return;
+                        }
+                        const errors = validatePassword(newPass);
+                        if (errors.length > 0) {
+                            showToast('⚠️ ' + errors.join(' • '));
+                            return;
+                        }
+
+                        if (USE_SERVER) {
+                            try {
+                                const res = await fetch(`${SERVER_URL}/change-password`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ username: currentUser, oldPassword: old, newPassword: newPass })
+                                });
+                                const data = await res.json();
+                                if (!res.ok) {
+                                    showToast('⚠️ ' + data.message);
+                                    return;
+                                }
+                                closeModal();
+                                showToast('✅ تم تغيير كلمة المرور بنجاح');
+                            } catch (err) {
+                                showToast('⚠️ خطأ في الاتصال بالخادم');
+                            }
+                        } else {
+                            const users = getUsers();
+                            if (!users[currentUser] || users[currentUser].password !== old) {
+                                showToast('⚠️ كلمة المرور الحالية غير صحيحة');
+                                return;
+                            }
+                            users[currentUser].password = newPass;
+                            saveUsers(users);
+                            closeModal();
+                            showToast('✅ تم تغيير كلمة المرور بنجاح');
+                        }
+                    } },
+                { text: 'إلغاء', class: 'btn-outline', action: closeModal }
+            ]);
+        }
+
+        // ============================================================
+        //  USER MODAL (centered)
+        // ============================================================
+        function toggleUserModal() {
+            const overlay = document.getElementById('user-modal-overlay');
+            if (overlay.classList.contains('show')) {
+                closeUserModal();
+            } else {
+                openUserModal();
+            }
+        }
+
+        function openUserModal() {
+            document.getElementById('modal-username').textContent = '👤 ' + currentUser;
+            // Highlight current theme
+            const isPink = document.getElementById('app').classList.contains('theme-pink');
+            document.querySelectorAll('#user-modal-overlay .theme-selector button').forEach(btn => {
+                btn.classList.toggle('active', (isPink && btn.dataset.theme === 'pink') || (!isPink && btn.dataset.theme === 'blue'));
+            });
+            document.getElementById('user-modal-overlay').classList.add('show');
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal-overlay').classList.remove('show');
+        }
+
+        function updateUserUI() {
+            document.getElementById('user-avatar').textContent = currentUser.charAt(0).toUpperCase();
+        }
+
+        // ============================================================
+        //  THEME
+        // ============================================================
+        function setTheme(theme) {
+            const app = document.getElementById('app');
+            app.classList.remove('theme-pink', 'theme-blue');
+            app.classList.add('theme-' + theme);
+            // Update login page theme
+            document.getElementById('login-page').classList.remove('theme-pink', 'theme-blue');
+            document.getElementById('login-page').classList.add('theme-' + theme);
+            localStorage.setItem('taskTrackerTheme_' + currentUser, theme);
+            showToast('✅ تم تغيير الثيم إلى ' + (theme === 'pink' ? 'الزهري' : 'الأزرق'));
+        }
+
+        function loadTheme() {
+            if (!currentUser) return;
+            const saved = localStorage.getItem('taskTrackerTheme_' + currentUser);
+            if (saved) setTheme(saved);
+            else setTheme('pink');
+        }
+
+        // ============================================================
+        //  DATA LAYER (per user) with server sync support
+        // ============================================================
+        const STORAGE_KEY_PREFIX = 'taskTrackerData_';
+        let data = { projects: [] };
+
+        async function loadUserData() {
+            if (!currentUser) return;
+            if (USE_SERVER) {
+                try {
+                    const res = await fetch(`${SERVER_URL}/projects/${currentUser}`);
+                    if (res.ok) {
+                        const serverData = await res.json();
+                        data = serverData;
+                    } else {
+                        loadLocalData();
+                    }
+                } catch {
+                    loadLocalData();
+                }
+            } else {
+                loadLocalData();
+            }
+            renderHome();
+        }
+
+        function loadLocalData() {
+            const key = STORAGE_KEY_PREFIX + currentUser;
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === 'object' && Array.isArray(parsed.projects)) {
+                        data = parsed;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        async function saveData() {
+            if (!currentUser) return;
+            if (USE_SERVER) {
+                try {
+                    await fetch(`${SERVER_URL}/projects/${currentUser}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } catch (err) {
+                    saveLocalData();
+                }
+            } else {
+                saveLocalData();
+            }
+        }
+
+        function saveLocalData() {
+            const key = STORAGE_KEY_PREFIX + currentUser;
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        function genId() {
+            return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        }
+
+        // ============================================================
+        //  TOAST
+        // ============================================================
+        let toastTimer = null;
+
+        function showToast(msg, duration = 2200) {
+            const el = document.getElementById('toast');
+            if (!el) return;
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+        }
+
+        // ============================================================
+        //  NAVIGATION
+        // ============================================================
+        let currentProjectId = null;
+
+        function showPage(name) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const page = document.getElementById('page-' + name);
+            if (page) page.classList.add('active');
+        }
+
+        function goHome() {
+            currentProjectId = null;
+            showPage('home');
+            renderHome();
+        }
+
+        function showArchived() {
+            showPage('archived');
+            renderArchived();
+        }
+
+        // ============================================================
+        //  HOME
+        // ============================================================
+        function renderHome() {
+            const container = document.getElementById('project-list');
+            if (!container) return;
+            const active = data.projects.filter(p => p.status !== 'archived');
+            if (active.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column:1/-1;">
+                        <div class="icon">🌱</div>
+                        <p>لا توجد مشاريع نشطة<br>أنشئ مشروعاً جديداً للبدء</p>
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = active.map(p => {
+                const total = p.tasks.length;
+                const doneCount = countDone(p);
+                const pct = total > 0 && p.days.length > 0 ? Math.round((doneCount / (total * p.days.length)) * 100) : 0;
+                const daysCount = p.days.length;
+                return `
+                    <div class="project-card" onclick="openProject('${p.id}')">
+                        <div class="card-status">${p.status === 'archived' ? 'مؤرشف' : 'نشط'}</div>
+                        <div class="card-title">📁 ${p.name}</div>
+                        <div class="card-meta">
+                            <span>📌 ${p.tasks.length} مهام</span>
+                            <span>📅 ${daysCount} أيام</span>
+                            <span>📊 ${pct}%</span>
+                        </div>
+                        <div class="card-progress"><div class="bar" style="width:${pct}%"></div></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function countDone(project) {
+            let count = 0;
+            project.days.forEach(day => {
+                project.tasks.forEach(task => {
+                    const st = day.completions && day.completions[task.id];
+                    if (st === 'done') count++;
+                });
+            });
+            return count;
+        }
+
+        // ============================================================
+        //  CREATE PROJECT
+        // ============================================================
+        function showCreateProject() {
+            openModal('مشروع جديد', `
+                <label>اسم المشروع</label>
+                <input id="modal-project-name" placeholder="أدخل اسم المشروع...">
+                <label>وصف (اختياري)</label>
+                <textarea id="modal-project-desc" placeholder="وصف المشروع..." rows="2"></textarea>
+            `, [
+                { text: 'إنشاء', class: 'btn-primary', action: () => {
+                        const name = document.getElementById('modal-project-name').value.trim();
+                        if (!name) { showToast('الرجاء إدخال اسم المشروع'); return; }
+                        const desc = document.getElementById('modal-project-desc').value.trim();
+                        const project = {
+                            id: genId(),
+                            name: name,
+                            description: desc,
+                            createdAt: new Date().toISOString().slice(0, 10),
+                            status: 'active',
+                            tasks: [],
+                            days: []
+                        };
+                        data.projects.push(project);
+                        saveData();
+                        closeModal();
+                        showToast('✅ تم إنشاء المشروع');
+                        renderHome();
+                    } },
+                { text: 'إلغاء', class: 'btn-outline', action: closeModal }
+            ]);
+        }
+
+        // ============================================================
+        //  OPEN PROJECT
+        // ============================================================
+        function openProject(id) {
+            const p = data.projects.find(x => x.id === id);
+            if (!p) { showToast('المشروع غير موجود'); return; }
+            if (p.status === 'archived') { showToast('هذا المشروع مؤرشف'); return; }
+            currentProjectId = id;
+            showPage('project');
+            renderProject();
+        }
+
+        function getCurrentProject() {
+            return data.projects.find(p => p.id === currentProjectId);
+        }
+
+        // ============================================================
+        //  RENDER PROJECT (days as rows, tasks as columns)
+        // ============================================================
+        function renderProject() {
+            const p = getCurrentProject();
+            if (!p) { goHome(); return; }
+
+            const nameEl = document.getElementById('detail-project-name');
+            const statusEl = document.getElementById('detail-project-status');
+            if (nameEl) nameEl.textContent = p.name;
+            if (statusEl) statusEl.textContent = p.status === 'archived' ? '(مؤرشف)' : '';
+
+            const thead = document.getElementById('detail-thead');
+            const tbody = document.getElementById('detail-tbody');
+            if (!thead || !tbody) return;
+
+            // Sort days chronologically
+            const sortedDays = [...p.days].sort((a, b) => {
+                if (!a.date) return 1;
+                if (!b.date) return -1;
+                return new Date(a.date) - new Date(b.date);
+            });
+
+            let headerHTML = `<th>اليوم / المهام</th>`;
+            p.tasks.forEach(task => {
+                headerHTML += `<th>${task.name}</th>`;
+            });
+            headerHTML += `<th style="min-width:60px;">⚙️</th>`;
+            thead.innerHTML = headerHTML;
+
+            if (sortedDays.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="${p.tasks.length+2}" style="text-align:center;padding:30px;color:var(--text-light);">
+                        لا توجد أيام. أضف يوماً للبدء!
+                    </td></tr>
+                `;
+                return;
+            }
+
+            let bodyHTML = '';
+            sortedDays.forEach((day, di) => {
+                bodyHTML += `<tr>`;
+                bodyHTML += `<td>${day.date || 'يوم'} <span style="font-size:11px;color:var(--text-light);">#${di+1}</span>
+                            <button class="btn-icon del" onclick="deleteDay(${di})" title="حذف اليوم" style="font-size:12px;margin-right:6px;">🗑️</button>
+                        </td>`;
+                p.tasks.forEach(task => {
+                    const st = day.completions && day.completions[task.id] || null;
+                    const reason = day.reasons && day.reasons[task.id] || '';
+                    let cellClass = 'cell empty';
+                    let content = '⬜';
+                    if (st === 'done') { cellClass = 'cell done'; content = '✅'; }
+                    else if (st === 'not_done') { cellClass = 'cell not-done'; content = '❌'; }
+                    const dotHtml = (st === 'not_done' && reason) ? `<span class="reason-dot" title="${reason}"></span>` : '';
+                    bodyHTML += `
+                        <td>
+                            <div class="${cellClass}" 
+                                 onclick="openCellPopup('${p.id}',${di},'${task.id}')"
+                                 title="${reason || 'اضغط لتحديد الحالة'}">
+                                <span class="cell-content">${content}</span>
+                                ${dotHtml}
+                            </div>
+                        </td>
+                    `;
+                });
+                bodyHTML += `<td><span style="font-size:12px;color:var(--text-light);">🔧</span></td>`;
+                bodyHTML += `</tr>`;
+            });
+
+            let actionRow = `<tr style="background:var(--primary-soft);border-bottom:2px solid var(--primary-border);">`;
+            actionRow += `<td style="font-weight:600;color:var(--text-muted);">إدارة المهام</td>`;
+            p.tasks.forEach(task => {
+                actionRow += `
+                    <td>
+                        <div class="task-actions">
+                            <button class="btn-icon" onclick="editTask('${task.id}')" title="تعديل">✏️</button>
+                            <button class="btn-icon del" onclick="deleteTask('${task.id}')" title="حذف">🗑️</button>
+                        </div>
+                    </td>
+                `;
+            });
+            actionRow += `<td></td></tr>`;
+
+            tbody.innerHTML = actionRow + bodyHTML;
+        }
+
+        // ============================================================
+        //  DELETE DAY
+        // ============================================================
+        function deleteDay(index) {
+            const p = getCurrentProject();
+            if (!p) return;
+            if (!confirm('هل أنت متأكد من حذف هذا اليوم؟')) return;
+            p.days.splice(index, 1);
+            saveData();
+            renderProject();
+            showToast('🗑️ تم حذف اليوم');
+        }
+
+        // ============================================================
+        //  ADD TASK
+        // ============================================================
+        function addTask() {
+            const p = getCurrentProject();
+            if (!p) return;
+            openModal('إضافة مهمة جديدة', `
+                <label>اسم المهمة</label>
+                <input id="modal-task-name" placeholder="أدخل اسم المهمة...">
+            `, [
+                { text: 'إضافة', class: 'btn-primary', action: () => {
+                        const name = document.getElementById('modal-task-name').value.trim();
+                        if (!name) { showToast('الرجاء إدخال اسم المهمة'); return; }
+                        const newTask = { id: genId(), name: name };
+                        p.tasks.push(newTask);
+                        p.days.forEach(day => {
+                            if (!day.completions) day.completions = {};
+                            if (!day.reasons) day.reasons = {};
+                            day.completions[newTask.id] = null;
+                        });
+                        saveData();
+                        closeModal();
+                        showToast('✅ تمت إضافة المهمة');
+                        renderProject();
+                    } },
+                { text: 'إلغاء', class: 'btn-outline', action: closeModal }
+            ]);
+        }
+
+        function editTask(taskId) {
+            const p = getCurrentProject();
+            if (!p) return;
+            const task = p.tasks.find(t => t.id === taskId);
+            if (!task) return;
+            openModal('تعديل المهمة', `
+                <label>اسم المهمة</label>
+                <input id="modal-task-name" value="${task.name}">
+            `, [
+                { text: 'حفظ', class: 'btn-primary', action: () => {
+                        const name = document.getElementById('modal-task-name').value.trim();
+                        if (!name) { showToast('الرجاء إدخال اسم المهمة'); return; }
+                        task.name = name;
+                        saveData();
+                        closeModal();
+                        showToast('✅ تم التعديل');
+                        renderProject();
+                    } },
+                { text: 'إلغاء', class: 'btn-outline', action: closeModal }
+            ]);
+        }
+
+        function deleteTask(taskId) {
+            if (!confirm('هل أنت متأكد من حذف هذه المهمة؟')) return;
+            const p = getCurrentProject();
+            if (!p) return;
+            p.tasks = p.tasks.filter(t => t.id !== taskId);
+            p.days.forEach(day => {
+                if (day.completions) delete day.completions[taskId];
+                if (day.reasons) delete day.reasons[taskId];
+            });
+            saveData();
+            showToast('🗑️ تم حذف المهمة');
+            renderProject();
+        }
+
+        // ============================================================
+        //  ADD DAY
+        // ============================================================
+        function addDay() {
+            const p = getCurrentProject();
+            if (!p) return;
+            const today = new Date().toISOString().slice(0, 10);
+            openModal('إضافة يوم جديد', `
+                <label>تاريخ اليوم</label>
+                <input id="modal-day-date" type="date" value="${today}">
+                <label>ملاحظة (اختياري)</label>
+                <input id="modal-day-note" placeholder="ملاحظة عن هذا اليوم...">
+            `, [
+                { text: 'إضافة', class: 'btn-primary', action: () => {
+                        const date = document.getElementById('modal-day-date').value;
+                        if (!date) { showToast('الرجاء اختيار تاريخ'); return; }
+                        if (p.days.some(d => d.date === date)) {
+                            showToast('⚠️ هذا اليوم موجود مسبقاً');
+                            return;
+                        }
+                        const note = document.getElementById('modal-day-note').value.trim();
+                        const completions = {};
+                        const reasons = {};
+                        p.tasks.forEach(t => { completions[t.id] = null; });
+                        p.days.push({ date, note, completions, reasons });
+                        // Sort days
+                        p.days.sort((a, b) => {
+                            if (!a.date) return 1;
+                            if (!b.date) return -1;
+                            return new Date(a.date) - new Date(b.date);
+                        });
+                        saveData();
+                        closeModal();
+                        showToast('📅 تمت إضافة اليوم');
+                        renderProject();
+                    } },
+                { text: 'إلغاء', class: 'btn-outline', action: closeModal }
+            ]);
+        }
+
+        // ============================================================
+        //  CELL POPUP (centered)
+        // ============================================================
+        let cellPopupState = null;
+
+        function openCellPopup(projectId, dayIndex, taskId) {
+            const p = data.projects.find(x => x.id === projectId);
+            if (!p) return;
+            if (p.status === 'archived') { showToast('المشروع مؤرشَف'); return; }
+            // Find the actual day index in sorted array
+            const sortedDays = [...p.days].sort((a, b) => {
+                if (!a.date) return 1;
+                if (!b.date) return -1;
+                return new Date(a.date) - new Date(b.date);
+            });
+            const day = sortedDays[dayIndex];
+            if (!day) return;
+            const task = p.tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            cellPopupState = { projectId, dayIndex, taskId };
+
+            const popup = document.getElementById('cell-popup');
+            const title = document.getElementById('popup-title');
+            const reasonWrap = document.getElementById('popup-reason-wrap');
+            const reasonInput = document.getElementById('popup-reason-input');
+            if (!popup || !title || !reasonWrap || !reasonInput) return;
+
+            const currentStatus = day.completions && day.completions[taskId] || null;
+            const currentReason = day.reasons && day.reasons[taskId] || '';
+
+            title.textContent = `📌 ${task.name} (${day.date || 'يوم'})`;
+
+            if (currentStatus === 'not_done') {
+                reasonWrap.style.display = 'block';
+                reasonInput.value = currentReason || '';
+            } else {
+                reasonWrap.style.display = 'none';
+                reasonInput.value = '';
+            }
+
+            popup.style.display = 'block';
+            popup.classList.add('show');
+
+            popup.dataset.tempStatus = currentStatus || '';
+            popup.dataset.tempReason = currentReason || '';
+        }
+
+        function setCellStatus(status) {
+            if (!cellPopupState) return;
+            const { projectId, dayIndex, taskId } = cellPopupState;
+            const p = data.projects.find(x => x.id === projectId);
+            if (!p) return;
+            const sortedDays = [...p.days].sort((a, b) => {
+                if (!a.date) return 1;
+                if (!b.date) return -1;
+                return new Date(a.date) - new Date(b.date);
+            });
+            const day = sortedDays[dayIndex];
+            if (!day) return;
+
+            if (!day.completions) day.completions = {};
+            if (!day.reasons) day.reasons = {};
+
+            if (status === 'done') {
+                day.completions[taskId] = 'done';
+                day.reasons[taskId] = '';
+                document.getElementById('popup-reason-wrap').style.display = 'none';
+            } else if (status === 'not_done') {
+                day.completions[taskId] = 'not_done';
+                document.getElementById('popup-reason-wrap').style.display = 'block';
+                const input = document.getElementById('popup-reason-input');
+                if (input) input.focus();
+            } else if (status === 'clear') {
+                day.completions[taskId] = null;
+                day.reasons[taskId] = '';
+                document.getElementById('popup-reason-wrap').style.display = 'none';
+            }
+            saveData();
+            renderProject();
+            const popup = document.getElementById('cell-popup');
+            if (popup) popup.dataset.tempStatus = status;
+            if (status === 'clear') {
+                closeCellPopup();
+                showToast('✅ تم إلغاء التحديد');
+            }
+        }
+
+        function saveCellReason() {
+            if (!cellPopupState) { closeCellPopup(); return; }
+            const { projectId, dayIndex, taskId } = cellPopupState;
+            const p = data.projects.find(x => x.id === projectId);
+            if (!p) { closeCellPopup(); return; }
+            const sortedDays = [...p.days].sort((a, b) => {
+                if (!a.date) return 1;
+                if (!b.date) return -1;
+                return new Date(a.date) - new Date(b.date);
+            });
+            const day = sortedDays[dayIndex];
+            if (!day) { closeCellPopup(); return; }
+            const reason = document.getElementById('popup-reason-input').value.trim();
+            if (day.completions && day.completions[taskId] === 'not_done') {
+                if (!day.reasons) day.reasons = {};
+                day.reasons[taskId] = reason || '';
+            }
+            saveData();
+            renderProject();
+            closeCellPopup();
+            showToast('✅ تم حفظ الحالة');
+        }
+
+        function closeCellPopup() {
+            const popup = document.getElementById('cell-popup');
+            if (popup) {
+                popup.style.display = 'none';
+                popup.classList.remove('show');
+            }
+            cellPopupState = null;
+        }
+
+        // ============================================================
+        //  ARCHIVE
+        // ============================================================
+        function archiveProject() {
+            const p = getCurrentProject();
+            if (!p) return;
+            if (p.status === 'archived') { showToast('المشروع مؤرشَف بالفعل'); return; }
+            if (!confirm('هل أنت متأكد من أرشفة هذا المشروع؟')) return;
+            p.status = 'archived';
+            saveData();
+            showToast('📦 تمت أرشفة المشروع');
+            goHome();
+        }
+
+        function renderArchived() {
+            const container = document.getElementById('archive-list');
+            const empty = document.getElementById('archive-empty');
+            if (!container || !empty) return;
+
+            const archived = data.projects.filter(p => p.status === 'archived');
+            if (archived.length === 0) {
+                container.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+            container.innerHTML = archived.map(p => {
+                const total = p.tasks.length;
+                const doneCount = countDone(p);
+                const pct = total > 0 && p.days.length > 0 ? Math.round((doneCount / (total * p.days.length)) * 100) : 0;
+                return `
+                    <div class="archive-card">
+                        <div class="title">📁 ${p.name}</div>
+                        <div class="meta">📌 ${p.tasks.length} مهام · 📅 ${p.days.length} أيام · 📊 ${pct}%</div>
+                        <div class="meta" style="font-size:12px;">🗓️ ${p.createdAt || ''}</div>
+                        <div class="actions">
+                            <button class="btn btn-sm btn-success" onclick="restoreProject('${p.id}')">↩️ استعادة</button>
+                            <button class="btn btn-sm btn-primary" onclick="exportArchivedPDF('${p.id}')">📄 PDF</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProjectForever('${p.id}')">🗑️ حذف</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function restoreProject(id) {
+            const p = data.projects.find(x => x.id === id);
+            if (!p) return;
+            p.status = 'active';
+            saveData();
+            showToast('✅ تمت استعادة المشروع');
+            renderArchived();
+            goHome();
+        }
+
+        function deleteProjectForever(id) {
+            if (!confirm('⚠️ هل أنت متأكد من حذف هذا المشروع نهائياً؟')) return;
+            data.projects = data.projects.filter(p => p.id !== id);
+            saveData();
+            showToast('🗑️ تم حذف المشروع');
+            renderArchived();
+        }
+
+        // ============================================================
+        //  PDF EXPORT
+        // ============================================================
+        async function exportPDF() {
+            const p = getCurrentProject();
+            if (!p) { showToast('المشروع غير موجود'); return; }
+            await generatePDF(p);
+        }
+
+        async function exportArchivedPDF(projectId) {
+            const p = data.projects.find(x => x.id === projectId);
+            if (!p) { showToast('المشروع غير موجود'); return; }
+            await generatePDF(p);
+        }
+
+        async function generatePDF(p) {
+            showToast('⏳ جاري تجهيز PDF...');
+
+            try {
+                const area = document.getElementById('pdf-export-area');
+                if (!area) { showToast('⚠️ خطأ في التصدير'); return; }
+
+                const isPink = document.getElementById('app').classList.contains('theme-pink');
+                const themeColor = isPink ? '#d6336c' : '#1a5a9c';
+
+                const sortedDays = [...p.days].sort((a, b) => {
+                    if (!a.date) return 1;
+                    if (!b.date) return -1;
+                    return new Date(a.date) - new Date(b.date);
+                });
+
+                let html = `
+                    <div style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;direction:rtl;background:#fff;padding:8mm;">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                            <div class="pdf-title" style="color:${themeColor};">${isPink ? '🌸' : '💻'} ${p.name}</div>
+                        </div>
+                        <div class="pdf-meta">📌 ${p.tasks.length} مهام · 📅 ${p.days.length} أيام ${p.description ? '· 📝 '+p.description : ''}</div>
+                        <table>
+                            <thead><tr><th>اليوم / المهام</th>
+                `;
+                p.tasks.forEach(task => {
+                    html += `<th>${task.name}</th>`;
+                });
+                html += `</tr></thead><tbody>`;
+
+                if (sortedDays.length === 0) {
+                    html += `<tr><td colspan="${p.tasks.length+1}" style="text-align:center;padding:20px;color:#aaa;">لا توجد أيام</td></tr>`;
+                } else {
+                    sortedDays.forEach(day => {
+                        html += `<tr><td>${day.date || 'يوم'}</td>`;
+                        p.tasks.forEach(task => {
+                            const st = day.completions && day.completions[task.id] || null;
+                            const reason = day.reasons && day.reasons[task.id] || '';
+                            let content = '⬜';
+                            if (st === 'done') content = '✅';
+                            else if (st === 'not_done') content = '❌';
+                            if (st === 'not_done' && reason) {
+                                content += ` <span class="reason-text">(${reason})</span>`;
+                            }
+                            html += `<td>${content}</td>`;
+                        });
+                        html += `</tr>`;
+                    });
+                }
+
+                html += `
+                            </tbody>
+                        </table>
+                        <div class="pdf-footer">
+                            تم التصدير من متابعة المهام • ${new Date().toLocaleDateString('ar-EG')}
+                        </div>
+                    </div>
+                `;
+                area.innerHTML = html;
+
+                document.getElementById('app').classList.add('pdf-export-active');
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                const canvas = await html2canvas(area, {
+                    scale: 2.5,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    width: area.scrollWidth,
+                    height: area.scrollHeight,
+                    windowWidth: area.scrollWidth,
+                    windowHeight: area.scrollHeight,
+                });
+
+                document.getElementById('app').classList.remove('pdf-export-active');
+
+                if (!canvas || canvas.width === 0 || canvas.height === 0) {
+                    showToast('⚠️ فشل في التقاط الصورة');
+                    return;
+                }
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const a4Width = 210;
+                const a4Height = 297;
+                const margin = 12;
+
+                const imgWidth = a4Width - margin * 2;
+                const imgHeight = (canvas.height / canvas.width) * imgWidth;
+
+                let remainingHeight = imgHeight;
+                let yOffset = 0;
+
+                while (remainingHeight > 0) {
+                    const pageHeight = Math.min(remainingHeight, a4Height - margin * 2);
+                    const srcY = yOffset / imgHeight * canvas.height;
+                    const srcH = (pageHeight / imgHeight) * canvas.height;
+
+                    const pageCanvas = document.createElement('canvas');
+                    const pageW = canvas.width;
+                    const pageH = Math.floor(srcH);
+                    pageCanvas.width = pageW;
+                    pageCanvas.height = pageH;
+                    const ctx = pageCanvas.getContext('2d');
+                    ctx.drawImage(canvas, 0, srcY, pageW, srcH, 0, 0, pageW, pageH);
+
+                    const pageImg = pageCanvas.toDataURL('image/jpeg', 0.92);
+
+                    if (yOffset > 0) {
+                        doc.addPage();
+                    }
+
+                    doc.addImage(pageImg, 'JPEG', margin, margin, imgWidth, pageHeight);
+
+                    yOffset += pageHeight;
+                    remainingHeight -= pageHeight;
+                }
+
+                doc.save(`${p.name}_tasks.pdf`);
+                showToast('✅ تم تحميل PDF بنجاح');
+                area.innerHTML = '';
+
+            } catch (err) {
+                console.error(err);
+                showToast('⚠️ حدث خطأ أثناء تصدير PDF');
+                document.getElementById('app').classList.remove('pdf-export-active');
+                document.getElementById('pdf-export-area').innerHTML = '';
+            }
+        }
+
+        // ============================================================
+        //  MODAL
+        // ============================================================
+        function openModal(title, bodyHTML, actions) {
+            const overlay = document.getElementById('modal-overlay');
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const actionsEl = document.getElementById('modal-actions');
+            if (!overlay || !titleEl || !bodyEl || !actionsEl) return;
+
+            titleEl.textContent = title;
+            bodyEl.innerHTML = bodyHTML;
+            actionsEl.innerHTML = '';
+            if (actions) {
+                actions.forEach(a => {
+                    const btn = document.createElement('button');
+                    btn.className = `btn ${a.class || ''}`;
+                    btn.textContent = a.text;
+                    btn.onclick = a.action;
+                    actionsEl.appendChild(btn);
+                });
+            }
+            overlay.classList.add('show');
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modal-overlay');
+            if (overlay) overlay.classList.remove('show');
+        }
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        // Check for existing session
+        const session = getSession();
+        if (session && session.username) {
+            const users = getUsers();
+            if (users[session.username]) {
+                currentUser = session.username;
+                document.getElementById('login-page').classList.add('hidden');
+                document.getElementById('app').style.display = 'block';
+                updateUserUI();
+                loadTheme();
+                loadUserData();
+            } else {
+                clearSession();
+            }
+        }
+
+        // Close popups on escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeCellPopup();
+                closeUserModal();
+            }
+        });
+
+        // Close cell popup on outside click
+        document.addEventListener('click', function(e) {
+            const popup = document.getElementById('cell-popup');
+            if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.closest('.cell')) {
+                closeCellPopup();
+            }
+        });
+    </script>
+
+</body>
+</html>
