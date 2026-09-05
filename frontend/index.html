@@ -1468,6 +1468,7 @@
         // ============================================================
         async function apiRequest(endpoint, method = 'GET', body = null) {
             const url = `${SERVER_URL}${endpoint}`;
+            console.log(`📡 ${method} ${url}`, body || '');
             const options = {
                 method,
                 headers: {
@@ -1482,9 +1483,10 @@
                 if (!response.ok) {
                     throw new Error(data.message || `HTTP error ${response.status}`);
                 }
+                console.log(`✅ ${method} ${url} نجح`, data);
                 return data;
             } catch (err) {
-                console.error('API Error:', err);
+                console.error(`❌ ${method} ${url} فشل:`, err);
                 throw err;
             }
         }
@@ -1495,34 +1497,49 @@
 
         // تحميل البيانات من الخادم
         async function loadUserData() {
-            if (!currentUser) return;
+            if (!currentUser) {
+                console.warn('⚠️ لا يوجد مستخدم حالياً');
+                return;
+            }
+            console.log(`🔄 جاري تحميل بيانات المستخدم: ${currentUser}`);
             try {
                 const result = await apiRequest(`/projects/${currentUser}`, 'GET');
                 if (result && Array.isArray(result.projects)) {
                     data.projects = result.projects;
-                    console.log('✅ تم تحميل البيانات من الخادم:', data.projects.length, 'مشروع');
+                    console.log(`✅ تم تحميل ${data.projects.length} مشروع من الخادم`);
                 } else {
                     data.projects = [];
                     console.warn('⚠️ بيانات غير متوقعة من الخادم، تم تهيئة مصفوفة فارغة');
                 }
+                // حفظ نسخة محلية احتياطية
                 saveLocalBackup();
             } catch (err) {
                 console.warn('⚠️ فشل تحميل البيانات من الخادم، استخدام النسخة المحلية', err);
-                loadLocalBackup();
+                const loaded = loadLocalBackup();
+                if (!loaded) {
+                    data.projects = [];
+                    console.warn('⚠️ لا توجد نسخة محلية، بدء بمشاريع فارغة');
+                }
             }
             renderHome();
         }
 
         // حفظ البيانات إلى الخادم
         async function saveData() {
-            if (!currentUser) return;
+            if (!currentUser) {
+                console.warn('⚠️ لا يوجد مستخدم لحفظ البيانات');
+                return;
+            }
             try {
                 if (!Array.isArray(data.projects)) {
                     data.projects = [];
                 }
+                console.log(`💾 جاري حفظ ${data.projects.length} مشروع للمستخدم ${currentUser}`);
                 await apiRequest(`/projects/${currentUser}`, 'POST', { projects: data.projects });
-                console.log('✅ تم حفظ البيانات في الخادم:', data.projects.length, 'مشروع');
+                console.log('✅ تم حفظ البيانات في الخادم بنجاح');
+                // حفظ نسخة محلية بعد الحفظ الناجح
                 saveLocalBackup();
+                showToast('✅ تم حفظ البيانات');
             } catch (err) {
                 console.warn('⚠️ فشل حفظ البيانات على الخادم، استخدام التخزين المحلي', err);
                 saveLocalBackup();
@@ -1535,6 +1552,7 @@
             try {
                 const key = `taskTrackerData_${currentUser}`;
                 localStorage.setItem(key, JSON.stringify({ projects: data.projects }));
+                console.log('💾 تم حفظ نسخة محلية');
             } catch (e) {
                 console.warn('فشل حفظ النسخة المحلية', e);
             }
@@ -1548,7 +1566,7 @@
                     const parsed = JSON.parse(raw);
                     if (parsed && Array.isArray(parsed.projects)) {
                         data.projects = parsed.projects;
-                        console.log('✅ تم تحميل البيانات من النسخة المحلية:', data.projects.length, 'مشروع');
+                        console.log(`✅ تم تحميل ${data.projects.length} مشروع من النسخة المحلية`);
                         return true;
                     }
                 }
@@ -2536,13 +2554,18 @@
         //  INIT
         // ============================================================
         const session = getSession();
+        console.log('🔍 الجلسة الحالية:', session);
+
         if (session && session.username) {
             currentUser = session.username;
+            console.log(`👤 مستخدم نشط: ${currentUser}`);
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('app').style.display = 'block';
             updateUserUI();
             loadTheme();
             loadUserData();
+        } else {
+            console.log('👤 لا توجد جلسة نشطة');
         }
 
         document.addEventListener('keydown', function(e) {
