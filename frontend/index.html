@@ -1199,13 +1199,14 @@
 
     <script>
         // ============================================================
-        //  CONFIGURATION: SWITCH BETWEEN LOCAL & SERVER MODE
+        //  CONFIGURATION - تغيير هذه القيم حسب البيئة
         // ============================================================
-        const USE_SERVER = true;  // change to true when server is ready
-       const SERVER_URL = '/api';   // يصبح الطلب إلى نفس الخادم
+        const USE_SERVER = true;  // true للإنتاج، false للتجربة المحلية
+        // في الإنتاج، استخدم المسار النسبي '/api' لتوجيه الطلبات إلى نفس الخادم
+        const SERVER_URL = '/api';
 
         // ============================================================
-        //  AUTHENTICATION SYSTEM (localStorage simulation)
+        //  AUTHENTICATION SYSTEM (localStorage for demo)
         // ============================================================
         const USERS_KEY = 'taskTrackerUsers';
         const SESSION_KEY = 'taskTrackerSession';
@@ -1249,7 +1250,33 @@
         }
 
         // ============================================================
-        //  AUTH FUNCTIONS (with server fallback)
+        //  SERVER COMMUNICATION (fetch wrappers)
+        // ============================================================
+        async function apiRequest(endpoint, method = 'GET', body = null) {
+            const url = USE_SERVER ? `${SERVER_URL}${endpoint}` : endpoint;
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+            if (body) options.body = JSON.stringify(body);
+
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || `HTTP error ${response.status}`);
+                }
+                return data;
+            } catch (err) {
+                console.error('API Error:', err);
+                throw err;
+            }
+        }
+
+        // ============================================================
+        //  AUTH FUNCTIONS
         // ============================================================
         async function handleLogin() {
             const username = document.getElementById('login-username').value.trim();
@@ -1264,17 +1291,9 @@
 
             if (USE_SERVER) {
                 try {
-                    const res = await fetch(`${SERVER_URL}/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) {
-                        errorEl.textContent = data.message || 'فشل تسجيل الدخول';
-                        errorEl.style.display = 'block';
-                        return;
-                    }
+                    const data = await apiRequest('/login', 'POST', { username, password });
+                    // تخزين التوكن أو اسم المستخدم
+                    localStorage.setItem('token', data.token);
                     currentUser = username;
                     saveSession(username);
                     errorEl.style.display = 'none';
@@ -1282,12 +1301,13 @@
                     document.getElementById('app').style.display = 'block';
                     updateUserUI();
                     loadTheme();
-                    loadUserData();
+                    await loadUserData();
                 } catch (err) {
-                    errorEl.textContent = 'خطأ في الاتصال بالخادم';
+                    errorEl.textContent = err.message || 'فشل تسجيل الدخول';
                     errorEl.style.display = 'block';
                 }
             } else {
+                // محاكاة محلية
                 const users = getUsers();
                 if (!users[username] || users[username].password !== password) {
                     errorEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
@@ -1332,20 +1352,10 @@
 
             if (USE_SERVER) {
                 try {
-                    const res = await fetch(`${SERVER_URL}/signup`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) {
-                        errorEl.textContent = data.message || 'فشل إنشاء الحساب';
-                        errorEl.style.display = 'block';
-                        return;
-                    }
+                    await apiRequest('/signup', 'POST', { username, password });
                     showSuccessPage(username, password);
                 } catch (err) {
-                    errorEl.textContent = 'خطأ في الاتصال بالخادم';
+                    errorEl.textContent = err.message || 'فشل إنشاء الحساب';
                     errorEl.style.display = 'block';
                 }
             } else {
@@ -1391,10 +1401,8 @@
         }
 
         function logout() {
-            if (USE_SERVER) {
-                fetch(`${SERVER_URL}/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
-            }
             clearSession();
+            localStorage.removeItem('token');
             currentUser = null;
             document.getElementById('app').style.display = 'none';
             document.getElementById('login-page').classList.remove('hidden');
@@ -1434,20 +1442,15 @@
 
                         if (USE_SERVER) {
                             try {
-                                const res = await fetch(`${SERVER_URL}/change-password`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ username: currentUser, oldPassword: old, newPassword: newPass })
+                                await apiRequest('/change-password', 'POST', {
+                                    username: currentUser,
+                                    oldPassword: old,
+                                    newPassword: newPass
                                 });
-                                const data = await res.json();
-                                if (!res.ok) {
-                                    showToast('⚠️ ' + data.message);
-                                    return;
-                                }
                                 closeModal();
                                 showToast('✅ تم تغيير كلمة المرور بنجاح');
                             } catch (err) {
-                                showToast('⚠️ خطأ في الاتصال بالخادم');
+                                showToast('⚠️ ' + err.message);
                             }
                         } else {
                             const users = getUsers();
@@ -1466,7 +1469,7 @@
         }
 
         // ============================================================
-        //  USER MODAL (centered)
+        //  USER MODAL
         // ============================================================
         function toggleUserModal() {
             const overlay = document.getElementById('user-modal-overlay');
@@ -1479,7 +1482,6 @@
 
         function openUserModal() {
             document.getElementById('modal-username').textContent = '👤 ' + currentUser;
-            // Highlight current theme
             const isPink = document.getElementById('app').classList.contains('theme-pink');
             document.querySelectorAll('#user-modal-overlay .theme-selector button').forEach(btn => {
                 btn.classList.toggle('active', (isPink && btn.dataset.theme === 'pink') || (!isPink && btn.dataset.theme === 'blue'));
@@ -1502,7 +1504,6 @@
             const app = document.getElementById('app');
             app.classList.remove('theme-pink', 'theme-blue');
             app.classList.add('theme-' + theme);
-            // Update login page theme
             document.getElementById('login-page').classList.remove('theme-pink', 'theme-blue');
             document.getElementById('login-page').classList.add('theme-' + theme);
             localStorage.setItem('taskTrackerTheme_' + currentUser, theme);
@@ -1517,7 +1518,7 @@
         }
 
         // ============================================================
-        //  DATA LAYER (per user) with server sync support
+        //  DATA LAYER (per user)
         // ============================================================
         const STORAGE_KEY_PREFIX = 'taskTrackerData_';
         let data = { projects: [] };
@@ -1526,14 +1527,10 @@
             if (!currentUser) return;
             if (USE_SERVER) {
                 try {
-                    const res = await fetch(`${SERVER_URL}/projects/${currentUser}`);
-                    if (res.ok) {
-                        const serverData = await res.json();
-                        data = serverData;
-                    } else {
-                        loadLocalData();
-                    }
-                } catch {
+                    const projects = await apiRequest(`/projects/${currentUser}`, 'GET');
+                    data.projects = projects.projects || [];
+                } catch (err) {
+                    console.warn('فشل تحميل البيانات من الخادم، استخدام المخزون المحلي', err);
                     loadLocalData();
                 }
             } else {
@@ -1559,12 +1556,9 @@
             if (!currentUser) return;
             if (USE_SERVER) {
                 try {
-                    await fetch(`${SERVER_URL}/projects/${currentUser}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
+                    await apiRequest(`/projects/${currentUser}`, 'POST', { projects: data.projects });
                 } catch (err) {
+                    console.warn('فشل حفظ البيانات على الخادم، استخدام المخزون المحلي', err);
                     saveLocalData();
                 }
             } else {
@@ -1665,7 +1659,7 @@
         }
 
         // ============================================================
-        //  CREATE PROJECT
+        //  CREATE PROJECT (المشكلة كانت هنا - تم إصلاحها)
         // ============================================================
         function showCreateProject() {
             openModal('مشروع جديد', `
@@ -1674,7 +1668,7 @@
                 <label>وصف (اختياري)</label>
                 <textarea id="modal-project-desc" placeholder="وصف المشروع..." rows="2"></textarea>
             `, [
-                { text: 'إنشاء', class: 'btn-primary', action: () => {
+                { text: 'إنشاء', class: 'btn-primary', action: async () => {
                         const name = document.getElementById('modal-project-name').value.trim();
                         if (!name) { showToast('الرجاء إدخال اسم المشروع'); return; }
                         const desc = document.getElementById('modal-project-desc').value.trim();
@@ -1688,7 +1682,7 @@
                             days: []
                         };
                         data.projects.push(project);
-                        saveData();
+                        await saveData();  // حفظ فوري
                         closeModal();
                         showToast('✅ تم إنشاء المشروع');
                         renderHome();
@@ -1801,12 +1795,12 @@
         // ============================================================
         //  DELETE DAY
         // ============================================================
-        function deleteDay(index) {
+        async function deleteDay(index) {
             const p = getCurrentProject();
             if (!p) return;
             if (!confirm('هل أنت متأكد من حذف هذا اليوم؟')) return;
             p.days.splice(index, 1);
-            saveData();
+            await saveData();
             renderProject();
             showToast('🗑️ تم حذف اليوم');
         }
@@ -1821,7 +1815,7 @@
                 <label>اسم المهمة</label>
                 <input id="modal-task-name" placeholder="أدخل اسم المهمة...">
             `, [
-                { text: 'إضافة', class: 'btn-primary', action: () => {
+                { text: 'إضافة', class: 'btn-primary', action: async () => {
                         const name = document.getElementById('modal-task-name').value.trim();
                         if (!name) { showToast('الرجاء إدخال اسم المهمة'); return; }
                         const newTask = { id: genId(), name: name };
@@ -1831,7 +1825,7 @@
                             if (!day.reasons) day.reasons = {};
                             day.completions[newTask.id] = null;
                         });
-                        saveData();
+                        await saveData();
                         closeModal();
                         showToast('✅ تمت إضافة المهمة');
                         renderProject();
@@ -1849,11 +1843,11 @@
                 <label>اسم المهمة</label>
                 <input id="modal-task-name" value="${task.name}">
             `, [
-                { text: 'حفظ', class: 'btn-primary', action: () => {
+                { text: 'حفظ', class: 'btn-primary', action: async () => {
                         const name = document.getElementById('modal-task-name').value.trim();
                         if (!name) { showToast('الرجاء إدخال اسم المهمة'); return; }
                         task.name = name;
-                        saveData();
+                        await saveData();
                         closeModal();
                         showToast('✅ تم التعديل');
                         renderProject();
@@ -1862,7 +1856,7 @@
             ]);
         }
 
-        function deleteTask(taskId) {
+        async function deleteTask(taskId) {
             if (!confirm('هل أنت متأكد من حذف هذه المهمة؟')) return;
             const p = getCurrentProject();
             if (!p) return;
@@ -1871,7 +1865,7 @@
                 if (day.completions) delete day.completions[taskId];
                 if (day.reasons) delete day.reasons[taskId];
             });
-            saveData();
+            await saveData();
             showToast('🗑️ تم حذف المهمة');
             renderProject();
         }
@@ -1889,7 +1883,7 @@
                 <label>ملاحظة (اختياري)</label>
                 <input id="modal-day-note" placeholder="ملاحظة عن هذا اليوم...">
             `, [
-                { text: 'إضافة', class: 'btn-primary', action: () => {
+                { text: 'إضافة', class: 'btn-primary', action: async () => {
                         const date = document.getElementById('modal-day-date').value;
                         if (!date) { showToast('الرجاء اختيار تاريخ'); return; }
                         if (p.days.some(d => d.date === date)) {
@@ -1901,13 +1895,12 @@
                         const reasons = {};
                         p.tasks.forEach(t => { completions[t.id] = null; });
                         p.days.push({ date, note, completions, reasons });
-                        // Sort days
                         p.days.sort((a, b) => {
                             if (!a.date) return 1;
                             if (!b.date) return -1;
                             return new Date(a.date) - new Date(b.date);
                         });
-                        saveData();
+                        await saveData();
                         closeModal();
                         showToast('📅 تمت إضافة اليوم');
                         renderProject();
@@ -1917,7 +1910,7 @@
         }
 
         // ============================================================
-        //  CELL POPUP (centered)
+        //  CELL POPUP
         // ============================================================
         let cellPopupState = null;
 
@@ -1925,7 +1918,6 @@
             const p = data.projects.find(x => x.id === projectId);
             if (!p) return;
             if (p.status === 'archived') { showToast('المشروع مؤرشَف'); return; }
-            // Find the actual day index in sorted array
             const sortedDays = [...p.days].sort((a, b) => {
                 if (!a.date) return 1;
                 if (!b.date) return -1;
@@ -2039,13 +2031,13 @@
         // ============================================================
         //  ARCHIVE
         // ============================================================
-        function archiveProject() {
+        async function archiveProject() {
             const p = getCurrentProject();
             if (!p) return;
             if (p.status === 'archived') { showToast('المشروع مؤرشَف بالفعل'); return; }
             if (!confirm('هل أنت متأكد من أرشفة هذا المشروع؟')) return;
             p.status = 'archived';
-            saveData();
+            await saveData();
             showToast('📦 تمت أرشفة المشروع');
             goHome();
         }
@@ -2081,20 +2073,20 @@
             }).join('');
         }
 
-        function restoreProject(id) {
+        async function restoreProject(id) {
             const p = data.projects.find(x => x.id === id);
             if (!p) return;
             p.status = 'active';
-            saveData();
+            await saveData();
             showToast('✅ تمت استعادة المشروع');
             renderArchived();
             goHome();
         }
 
-        function deleteProjectForever(id) {
+        async function deleteProjectForever(id) {
             if (!confirm('⚠️ هل أنت متأكد من حذف هذا المشروع نهائياً؟')) return;
             data.projects = data.projects.filter(p => p.id !== id);
-            saveData();
+            await saveData();
             showToast('🗑️ تم حذف المشروع');
             renderArchived();
         }
@@ -2281,17 +2273,13 @@
         // Check for existing session
         const session = getSession();
         if (session && session.username) {
-            const users = getUsers();
-            if (users[session.username]) {
-                currentUser = session.username;
-                document.getElementById('login-page').classList.add('hidden');
-                document.getElementById('app').style.display = 'block';
-                updateUserUI();
-                loadTheme();
-                loadUserData();
-            } else {
-                clearSession();
-            }
+            // التحقق من صحة الجلسة عبر الخادم (اختياري)
+            currentUser = session.username;
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('app').style.display = 'block';
+            updateUserUI();
+            loadTheme();
+            loadUserData();
         }
 
         // Close popups on escape
@@ -2311,6 +2299,5 @@
             }
         });
     </script>
-
 </body>
 </html>
